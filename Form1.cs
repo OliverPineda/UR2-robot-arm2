@@ -10,6 +10,7 @@ namespace UR2_robot_arm2
         private void Form1_Load(object sender, EventArgs e)
         {
             //this method will execute only once
+            //test for test commit 2
         }
     }
 }
