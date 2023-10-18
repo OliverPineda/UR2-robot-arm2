@@ -9,7 +9,7 @@ namespace UR2_robot_arm2
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //this load once
+            //this method will execute only once
         }
     }
 }
