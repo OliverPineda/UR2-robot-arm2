@@ -28,19 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
+            this.StartStopBtn = new System.Windows.Forms.Button();
             this.VideoPicBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPicBox)).BeginInit();
             this.SuspendLayout();
             // 
-            // button1
+            // StartStopBtn
             // 
-            this.button1.Location = new System.Drawing.Point(341, 318);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(94, 29);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "StartStopBtn";
-            this.button1.UseVisualStyleBackColor = true;
+            this.StartStopBtn.Location = new System.Drawing.Point(341, 318);
+            this.StartStopBtn.Name = "StartStopBtn";
+            this.StartStopBtn.Size = new System.Drawing.Size(112, 29);
+            this.StartStopBtn.TabIndex = 0;
+            this.StartStopBtn.Text = "Start";
+            this.StartStopBtn.UseVisualStyleBackColor = true;
+            this.StartStopBtn.Click += new System.EventHandler(this.StartStopBtn_Click);
             // 
             // VideoPicBox
             // 
@@ -56,9 +57,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.VideoPicBox);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.StartStopBtn);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.VideoPicBox)).EndInit();
             this.ResumeLayout(false);
@@ -67,7 +69,7 @@
 
         #endregion
 
-        private Button button1;
+        private Button StartStopBtn;
         private PictureBox VideoPicBox;
     }
 }
