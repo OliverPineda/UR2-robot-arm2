@@ -34,18 +34,27 @@
             this.arduinoLEDoff = new System.Windows.Forms.Button();
             this.SerialDataChar = new System.Windows.Forms.Button();
             this.sourcePictureBox = new System.Windows.Forms.PictureBox();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.blurredPictureBox = new System.Windows.Forms.PictureBox();
+            this.contourPictureBox = new System.Windows.Forms.PictureBox();
             this.BrowseBtn = new System.Windows.Forms.Button();
+            this.CoordsTextBox = new System.Windows.Forms.TextBox();
+            this.blurX = new System.Windows.Forms.TrackBar();
+            this.blurY = new System.Windows.Forms.TrackBar();
+            this.cannyMin = new System.Windows.Forms.TrackBar();
+            this.cannyMax = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sourcePictureBox)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurredPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.contourPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurX)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cannyMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cannyMax)).BeginInit();
             this.SuspendLayout();
             // 
             // StartStopBtn
             // 
-            this.StartStopBtn.Location = new System.Drawing.Point(233, 315);
+            this.StartStopBtn.Location = new System.Drawing.Point(265, 335);
             this.StartStopBtn.Name = "StartStopBtn";
             this.StartStopBtn.Size = new System.Drawing.Size(112, 29);
             this.StartStopBtn.TabIndex = 0;
@@ -55,15 +64,15 @@
             // 
             // VideoPictureBox
             // 
-            this.VideoPictureBox.Location = new System.Drawing.Point(131, 360);
+            this.VideoPictureBox.Location = new System.Drawing.Point(1, 260);
             this.VideoPictureBox.Name = "VideoPictureBox";
-            this.VideoPictureBox.Size = new System.Drawing.Size(112, 66);
+            this.VideoPictureBox.Size = new System.Drawing.Size(258, 180);
             this.VideoPictureBox.TabIndex = 1;
             this.VideoPictureBox.TabStop = false;
             // 
             // arduinoLEDon
             // 
-            this.arduinoLEDon.Location = new System.Drawing.Point(401, 315);
+            this.arduinoLEDon.Location = new System.Drawing.Point(265, 260);
             this.arduinoLEDon.Name = "arduinoLEDon";
             this.arduinoLEDon.Size = new System.Drawing.Size(151, 29);
             this.arduinoLEDon.TabIndex = 2;
@@ -73,7 +82,7 @@
             // 
             // arduinoLEDoff
             // 
-            this.arduinoLEDoff.Location = new System.Drawing.Point(401, 360);
+            this.arduinoLEDoff.Location = new System.Drawing.Point(265, 295);
             this.arduinoLEDoff.Name = "arduinoLEDoff";
             this.arduinoLEDoff.Size = new System.Drawing.Size(136, 34);
             this.arduinoLEDoff.TabIndex = 3;
@@ -83,7 +92,7 @@
             // 
             // SerialDataChar
             // 
-            this.SerialDataChar.Location = new System.Drawing.Point(578, 360);
+            this.SerialDataChar.Location = new System.Drawing.Point(265, 370);
             this.SerialDataChar.Name = "SerialDataChar";
             this.SerialDataChar.Size = new System.Drawing.Size(94, 29);
             this.SerialDataChar.TabIndex = 4;
@@ -92,31 +101,31 @@
             // 
             // sourcePictureBox
             // 
-            this.sourcePictureBox.Location = new System.Drawing.Point(12, 23);
+            this.sourcePictureBox.Location = new System.Drawing.Point(1, 10);
             this.sourcePictureBox.Name = "sourcePictureBox";
-            this.sourcePictureBox.Size = new System.Drawing.Size(198, 244);
+            this.sourcePictureBox.Size = new System.Drawing.Size(235, 244);
             this.sourcePictureBox.TabIndex = 5;
             this.sourcePictureBox.TabStop = false;
             // 
-            // pictureBox2
+            // blurredPictureBox
             // 
-            this.pictureBox2.Location = new System.Drawing.Point(250, 23);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(211, 244);
-            this.pictureBox2.TabIndex = 6;
-            this.pictureBox2.TabStop = false;
+            this.blurredPictureBox.Location = new System.Drawing.Point(242, 12);
+            this.blurredPictureBox.Name = "blurredPictureBox";
+            this.blurredPictureBox.Size = new System.Drawing.Size(270, 242);
+            this.blurredPictureBox.TabIndex = 6;
+            this.blurredPictureBox.TabStop = false;
             // 
-            // pictureBox3
+            // contourPictureBox
             // 
-            this.pictureBox3.Location = new System.Drawing.Point(537, 12);
-            this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new System.Drawing.Size(212, 255);
-            this.pictureBox3.TabIndex = 7;
-            this.pictureBox3.TabStop = false;
+            this.contourPictureBox.Location = new System.Drawing.Point(518, -1);
+            this.contourPictureBox.Name = "contourPictureBox";
+            this.contourPictureBox.Size = new System.Drawing.Size(270, 255);
+            this.contourPictureBox.TabIndex = 7;
+            this.contourPictureBox.TabStop = false;
             // 
             // BrowseBtn
             // 
-            this.BrowseBtn.Location = new System.Drawing.Point(633, 322);
+            this.BrowseBtn.Location = new System.Drawing.Point(694, 249);
             this.BrowseBtn.Name = "BrowseBtn";
             this.BrowseBtn.Size = new System.Drawing.Size(94, 29);
             this.BrowseBtn.TabIndex = 8;
@@ -124,14 +133,54 @@
             this.BrowseBtn.UseVisualStyleBackColor = true;
             this.BrowseBtn.Click += new System.EventHandler(this.BrowseBtn_Click);
             // 
+            // CoordsTextBox
+            // 
+            this.CoordsTextBox.Location = new System.Drawing.Point(419, 249);
+            this.CoordsTextBox.Name = "CoordsTextBox";
+            this.CoordsTextBox.Size = new System.Drawing.Size(269, 27);
+            this.CoordsTextBox.TabIndex = 9;
+            // 
+            // blurX
+            // 
+            this.blurX.Location = new System.Drawing.Point(422, 281);
+            this.blurX.Name = "blurX";
+            this.blurX.Size = new System.Drawing.Size(330, 56);
+            this.blurX.TabIndex = 10;
+            // 
+            // blurY
+            // 
+            this.blurY.Location = new System.Drawing.Point(422, 323);
+            this.blurY.Name = "blurY";
+            this.blurY.Size = new System.Drawing.Size(330, 56);
+            this.blurY.TabIndex = 11;
+            // 
+            // cannyMin
+            // 
+            this.cannyMin.Location = new System.Drawing.Point(422, 360);
+            this.cannyMin.Name = "cannyMin";
+            this.cannyMin.Size = new System.Drawing.Size(330, 56);
+            this.cannyMin.TabIndex = 12;
+            // 
+            // cannyMax
+            // 
+            this.cannyMax.Location = new System.Drawing.Point(422, 401);
+            this.cannyMax.Name = "cannyMax";
+            this.cannyMax.Size = new System.Drawing.Size(330, 56);
+            this.cannyMax.TabIndex = 13;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.cannyMax);
+            this.Controls.Add(this.cannyMin);
+            this.Controls.Add(this.blurY);
+            this.Controls.Add(this.blurX);
+            this.Controls.Add(this.CoordsTextBox);
             this.Controls.Add(this.BrowseBtn);
-            this.Controls.Add(this.pictureBox3);
-            this.Controls.Add(this.pictureBox2);
+            this.Controls.Add(this.contourPictureBox);
+            this.Controls.Add(this.blurredPictureBox);
             this.Controls.Add(this.sourcePictureBox);
             this.Controls.Add(this.SerialDataChar);
             this.Controls.Add(this.arduinoLEDoff);
@@ -144,9 +193,14 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.sourcePictureBox)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurredPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.contourPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurX)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.blurY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cannyMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cannyMax)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -158,8 +212,13 @@
         private Button arduinoLEDoff;
         private Button SerialDataChar;
         private PictureBox sourcePictureBox;
-        private PictureBox pictureBox2;
-        private PictureBox pictureBox3;
+        private PictureBox blurredPictureBox;
+        private PictureBox contourPictureBox;
         private Button BrowseBtn;
+        private TextBox CoordsTextBox;
+        private TrackBar blurX;
+        private TrackBar blurY;
+        private TrackBar cannyMin;
+        private TrackBar cannyMax;
     }
 }

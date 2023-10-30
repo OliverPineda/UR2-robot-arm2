@@ -1,5 +1,7 @@
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using Has2BeSameNameSpace;
 using System.Linq.Expressions;
 
@@ -152,7 +154,75 @@ namespace UR2_robot_arm2
                 //convert to B/W
                 CvInvoke.CvtColor(blurredImage, blurredImage, typeof(Bgr), typeof(Gray));
 
-                //apply canny;
+                // apply canny:
+                // NOTE: Canny function can frequently create duplicate lines on the same shape
+                //       depending on blur amount and threshold values, some tweaking might be needed.
+                //       You might also find that not using Canny and instead using FindContours on
+                //       a binary-threshold image is more accurate. 
+                CvInvoke.Canny(blurredImage, cannyImage, 150, 255);
+
+                // make a copy of the canny image, convert it to color for decorating:
+                CvInvoke.CvtColor(cannyImage, decoratedImage, typeof(Gray), typeof(Bgr));
+
+                // find contours:
+                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+                {
+                    // Build list of contours
+                    CvInvoke.FindContours(cannyImage, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+
+                    List<Bgr> lColors = new List<Bgr>{ new Bgr(Color.Red),
+                                                        new Bgr(Color.Green),
+                                                        new Bgr(Color.Blue),
+                                                        new Bgr(Color.Pink),
+                                                        new Bgr(Color.Yellow),
+                                                        new Bgr(Color.Orange),
+                                                        new Bgr(Color.Purple)};
+                    // remove duplicate contours
+                    //List<bool> lIsDuplicateFlags = Enumerable.Repeat(false, contours.Size).ToList(); ;
+
+                    //var PositionThreshold = 10;
+
+                    //for (int i = 0; i < contours.Size - 1; i++)
+                    //{
+                    //    var lCurPosition = contours[i][0];
+
+                    //    for (int j = i + 1; j < contours.Size; j++)
+                    //    {
+                    //        var lNextPosition = contours[j][0];
+
+                    //        var lDistance = Math.Sqrt((Math.Pow(lCurPosition.X - lNextPosition.X, 2) + Math.Pow(lCurPosition.Y - lNextPosition.Y, 2)));
+
+                    //        if (lDistance < PositionThreshold)
+                    //        {
+                    //            lIsDuplicateFlags[i] = true;
+                    //            break;
+                    //        }
+                    //    }
+                    //}
+
+                    var lKeptCount = 0;
+                    for (int i = 0; i < contours.Size; i++)
+                    {
+                        //if (lIsDuplicateFlags[i] == true)
+                        //{
+                        //    continue;
+                        //}
+                        lKeptCount++;
+
+                        VectorOfPoint contour = contours[i];
+                        CvInvoke.Polylines(decoratedImage, contour, true, lColors[i].MCvScalar);
+                        CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i].MCvScalar);
+
+                    }
+
+                    //MessageBox.Show($"There are {contours.Size} contours detected");
+                    CoordsTextBox.Text = $"{contours.Size} contours detected, {lKeptCount} kept";
+                }
+
+                // output images:
+                sourcePictureBox.Image = workingImage.ToBitmap();
+                blurredPictureBox.Image = blurredImage.ToBitmap();
+                contourPictureBox.Image = decoratedImage.ToBitmap();
             }
         }
     }
