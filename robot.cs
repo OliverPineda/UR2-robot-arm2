@@ -8,18 +8,15 @@ using System.Threading.Tasks;
 
 namespace Has2BeSameNameSpace
 {
-    public class LoCoMoCo
+    public class SerialCom
     {
-        public const byte STOP = 0x7F;
-        public const byte FLOAT = 0x0F;
-        public const byte FORWARD = 0x6f;
-        public const byte BACKWARD = 0x5F;
+
         SerialPort _serialPort;
         public bool Online { get; private set; }
 
-        public LoCoMoCo() { }
+        public SerialCom() { }
 
-        public LoCoMoCo(String port)
+        public SerialCom(String port)
         {
             SetupSerialComms(port);
         }
@@ -43,7 +40,7 @@ namespace Has2BeSameNameSpace
             }
         }
 
-        public void Move(char command)
+        public void Move(int command) //here was SerialCommunication.Move(1); //0 for lead off ERROR it was char not int
         {
             try
             {

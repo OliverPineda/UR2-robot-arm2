@@ -1,4 +1,6 @@
 using Emgu.CV;
+using Emgu.CV.Structure;
+using Has2BeSameNameSpace;
 using System.Linq.Expressions;
 
 namespace UR2_robot_arm2
@@ -19,13 +21,15 @@ namespace UR2_robot_arm2
         //capturing state indicator I WANT TO KNOW THE STATE. IS THE CAMERA CAPTURING OR NOT
         bool mIsCapturing = false;
 
+        private SerialCom SerialCommunication; //this is needed created class LINKS UP TO CLASS calls it
+
         public Form1()
         {
             InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
-       {
+        {
             try
 
             {
@@ -36,11 +40,11 @@ namespace UR2_robot_arm2
                     throw new Exception("No Camera Found");
             }
             catch (Exception ex)
-            
-               {
-                    MessageBox.Show(ex.Message);
-               }
-          
+
+            {
+                MessageBox.Show(ex.Message);
+            }
+            SerialCommunication = new SerialCom ("COM6"); // serial port that communicates with arduino
 
        }
 
@@ -89,6 +93,67 @@ namespace UR2_robot_arm2
             //DIspose all processing threads to avoid orphaned processes
             mCapture.Dispose();
             mCancellationToken.Dispose();
+        }
+
+        private void arduinoLEDon_Click(object sender, EventArgs e)
+        {
+            int serialData = 0;
+            if (mIsCapturing)
+                SerialCommunication.Move(1); //1 for LED on
+            serialData = 1;
+
+            //set up label to output the serial input
+            Invoke(new Action(() =>
+            {
+               SerialDataChar.Text = $"{serialData}";
+
+            }));
+        }
+
+        private void arduinoLEDoff_Click(object sender, EventArgs e)
+        {
+            int serialData = 0;
+            if (mIsCapturing)
+                SerialCommunication.Move(0); //0 for lead off
+            serialData = 0;
+
+            //set up label to output the serial input
+            Invoke(new Action(() =>
+            {
+                SerialDataChar.Text = $"{serialData}";
+
+            }));
+        }
+
+        private void BrowseBtn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog lFile = new OpenFileDialog();
+
+            if (lFile.ShowDialog() == DialogResult.OK)
+            {
+                // MessageBox.Show(lFile.FileName, "file to open.."
+
+                Mat workingImage = CvInvoke.Imread(lFile.FileName, Emgu.CV.CvEnum.ImreadModes.AnyColor);
+
+                //resize to PictureBox aspect ratio
+                int newHeight = (workingImage.Size.Height * sourcePictureBox.Size.Width) / workingImage.Size.Width;
+                Size newSize = new Size(sourcePictureBox.Size.Width, newHeight);
+                CvInvoke.Resize(workingImage, workingImage, newSize);
+
+                //as a test for comparison, create a copy of the image with a binary file
+                var binaryImage = workingImage.ToImage<Gray, byte>().ThresholdBinary(new Gray(125), new Gray(255)).Mat;
+
+                //Sample for gaussian blur;
+                var blurredImage = new Mat();
+                var cannyImage = new Mat();
+                var decoratedImage = new Mat();
+                CvInvoke.GaussianBlur(workingImage, blurredImage, new Size(3, 3), 0);
+
+                //convert to B/W
+                CvInvoke.CvtColor(blurredImage, blurredImage, typeof(Bgr), typeof(Gray));
+
+                //apply canny;
+            }
         }
     }
 }
