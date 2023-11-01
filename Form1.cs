@@ -9,6 +9,14 @@ namespace UR2_robot_arm2
 {
     public partial class Form1 : Form
     {
+        //vars for trackbars
+        int mBlurX;
+        int mBlurY;
+        int mCannyMin;
+        int mCannyMax;
+        int GrayMinScroll;
+        int GrayMaxScroll;
+
         //main capture object from Emgu.Cv MAIN CODE THAT COMMUNICATES WITH CAMERA. TELLS TO COMMUNICATE WITH CAMERA
         VideoCapture mCapture;
 
@@ -22,6 +30,9 @@ namespace UR2_robot_arm2
 
         //capturing state indicator I WANT TO KNOW THE STATE. IS THE CAMERA CAPTURING OR NOT
         bool mIsCapturing = false;
+
+        int mGrayMin = 1;
+        int mGrayMax = 255;
 
         private SerialCom SerialCommunication; //this is needed created class LINKS UP TO CLASS calls it
 
@@ -137,6 +148,8 @@ namespace UR2_robot_arm2
 
                 Mat workingImage = CvInvoke.Imread(lFile.FileName, Emgu.CV.CvEnum.ImreadModes.AnyColor);
 
+                Mat lOriginalImageDisplay = new Mat();
+
                 //resize to PictureBox aspect ratio
                 int newHeight = (workingImage.Size.Height * sourcePictureBox.Size.Width) / workingImage.Size.Width;
                 Size newSize = new Size(sourcePictureBox.Size.Width, newHeight);
@@ -149,7 +162,7 @@ namespace UR2_robot_arm2
                 var blurredImage = new Mat();
                 var cannyImage = new Mat();
                 var decoratedImage = new Mat();
-                CvInvoke.GaussianBlur(workingImage, blurredImage, new Size(3, 3), 0);
+                CvInvoke.GaussianBlur(workingImage, blurredImage, new Size(3, 3), 0); // values are blur amounts 1-9. blurX blurY must be odd numbers for 9 it is 3 by 3 there will be a middle box
 
                 //convert to B/W
                 CvInvoke.CvtColor(blurredImage, blurredImage, typeof(Bgr), typeof(Gray));
@@ -159,7 +172,7 @@ namespace UR2_robot_arm2
                 //       depending on blur amount and threshold values, some tweaking might be needed.
                 //       You might also find that not using Canny and instead using FindContours on
                 //       a binary-threshold image is more accurate. 
-                CvInvoke.Canny(blurredImage, cannyImage, 150, 255);
+                CvInvoke.Canny(blurredImage, cannyImage, 150, 255); //values are cannyMin and cannyMax, from 1-255 min and max
 
                 // make a copy of the canny image, convert it to color for decorating:
                 CvInvoke.CvtColor(cannyImage, decoratedImage, typeof(Gray), typeof(Bgr));
@@ -224,6 +237,38 @@ namespace UR2_robot_arm2
                 blurredPictureBox.Image = blurredImage.ToBitmap();
                 contourPictureBox.Image = decoratedImage.ToBitmap();
             }
+        }
+
+        private void blurX_Scroll(object sender, EventArgs e)
+        {
+            mBlurX = blurX.Value; // the member int = trackbar value. the scroll sets the value
+        }
+
+        private void blurY_Scroll(object sender, EventArgs e)
+        {
+            mBlurY = blurY.Value; //the member int = trackbar value. the scroll sets the value
+        }
+
+        private void cannyMin_Scroll(object sender, EventArgs e)
+        {
+            mCannyMin = cannyMin.Value; //the member int = trackbar value. the scroll sets the value
+        }
+
+        private void cannyMax_Scroll(object sender, EventArgs e)
+        {
+            mCannyMax = cannyMax.Value; //the member int = trackbar value. the scroll sets the value
+        }
+
+        private void GrayMin_Scroll(object sender, EventArgs e)
+        {
+            mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
+            GrayMinLabel.Text = mGrayMin.ToString();
+        }
+
+        private void GrayMax_Scroll(object sender, EventArgs e)
+        {
+            mGrayMax = GrayMax.Value;
+            GrayMaxLabel.Text = mGrayMax.ToString();
         }
     }
 }

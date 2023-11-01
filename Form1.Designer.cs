@@ -42,6 +42,10 @@
             this.blurY = new System.Windows.Forms.TrackBar();
             this.cannyMin = new System.Windows.Forms.TrackBar();
             this.cannyMax = new System.Windows.Forms.TrackBar();
+            this.GrayMin = new System.Windows.Forms.TrackBar();
+            this.GrayMax = new System.Windows.Forms.TrackBar();
+            this.GrayMinLabel = new System.Windows.Forms.TextBox();
+            this.GrayMaxLabel = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sourcePictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.blurredPictureBox)).BeginInit();
@@ -50,6 +54,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.blurY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cannyMin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cannyMax)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GrayMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GrayMax)).BeginInit();
             this.SuspendLayout();
             // 
             // StartStopBtn
@@ -146,6 +152,7 @@
             this.blurX.Name = "blurX";
             this.blurX.Size = new System.Drawing.Size(330, 56);
             this.blurX.TabIndex = 10;
+            this.blurX.Scroll += new System.EventHandler(this.blurX_Scroll);
             // 
             // blurY
             // 
@@ -153,6 +160,7 @@
             this.blurY.Name = "blurY";
             this.blurY.Size = new System.Drawing.Size(330, 56);
             this.blurY.TabIndex = 11;
+            this.blurY.Scroll += new System.EventHandler(this.blurY_Scroll);
             // 
             // cannyMin
             // 
@@ -160,6 +168,7 @@
             this.cannyMin.Name = "cannyMin";
             this.cannyMin.Size = new System.Drawing.Size(330, 56);
             this.cannyMin.TabIndex = 12;
+            this.cannyMin.Scroll += new System.EventHandler(this.cannyMin_Scroll);
             // 
             // cannyMax
             // 
@@ -167,12 +176,47 @@
             this.cannyMax.Name = "cannyMax";
             this.cannyMax.Size = new System.Drawing.Size(330, 56);
             this.cannyMax.TabIndex = 13;
+            this.cannyMax.Scroll += new System.EventHandler(this.cannyMax_Scroll);
+            // 
+            // GrayMin
+            // 
+            this.GrayMin.Location = new System.Drawing.Point(805, 287);
+            this.GrayMin.Name = "GrayMin";
+            this.GrayMin.Size = new System.Drawing.Size(386, 56);
+            this.GrayMin.TabIndex = 14;
+            this.GrayMin.Scroll += new System.EventHandler(this.GrayMin_Scroll);
+            // 
+            // GrayMax
+            // 
+            this.GrayMax.Location = new System.Drawing.Point(805, 414);
+            this.GrayMax.Name = "GrayMax";
+            this.GrayMax.Size = new System.Drawing.Size(386, 56);
+            this.GrayMax.TabIndex = 15;
+            this.GrayMax.Scroll += new System.EventHandler(this.GrayMax_Scroll);
+            // 
+            // GrayMinLabel
+            // 
+            this.GrayMinLabel.Location = new System.Drawing.Point(928, 262);
+            this.GrayMinLabel.Name = "GrayMinLabel";
+            this.GrayMinLabel.Size = new System.Drawing.Size(125, 27);
+            this.GrayMinLabel.TabIndex = 16;
+            // 
+            // GrayMaxLabel
+            // 
+            this.GrayMaxLabel.Location = new System.Drawing.Point(928, 381);
+            this.GrayMaxLabel.Name = "GrayMaxLabel";
+            this.GrayMaxLabel.Size = new System.Drawing.Size(125, 27);
+            this.GrayMaxLabel.TabIndex = 17;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1503, 609);
+            this.Controls.Add(this.GrayMaxLabel);
+            this.Controls.Add(this.GrayMinLabel);
+            this.Controls.Add(this.GrayMax);
+            this.Controls.Add(this.GrayMin);
             this.Controls.Add(this.cannyMax);
             this.Controls.Add(this.cannyMin);
             this.Controls.Add(this.blurY);
@@ -199,6 +243,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.blurY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cannyMin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cannyMax)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GrayMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.GrayMax)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -220,5 +266,9 @@
         private TrackBar blurY;
         private TrackBar cannyMin;
         private TrackBar cannyMax;
+        private TrackBar GrayMin;
+        private TrackBar GrayMax;
+        private TextBox GrayMinLabel;
+        private TextBox GrayMaxLabel;
     }
 }
