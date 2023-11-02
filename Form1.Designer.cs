@@ -46,6 +46,12 @@
             this.GrayMax = new System.Windows.Forms.TrackBar();
             this.GrayMinLabel = new System.Windows.Forms.TextBox();
             this.GrayMaxLabel = new System.Windows.Forms.TextBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.textBox6 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sourcePictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.blurredPictureBox)).BeginInit();
@@ -131,7 +137,7 @@
             // 
             // BrowseBtn
             // 
-            this.BrowseBtn.Location = new System.Drawing.Point(694, 249);
+            this.BrowseBtn.Location = new System.Drawing.Point(717, 270);
             this.BrowseBtn.Name = "BrowseBtn";
             this.BrowseBtn.Size = new System.Drawing.Size(94, 29);
             this.BrowseBtn.TabIndex = 8;
@@ -141,14 +147,14 @@
             // 
             // CoordsTextBox
             // 
-            this.CoordsTextBox.Location = new System.Drawing.Point(419, 249);
+            this.CoordsTextBox.Location = new System.Drawing.Point(442, 272);
             this.CoordsTextBox.Name = "CoordsTextBox";
             this.CoordsTextBox.Size = new System.Drawing.Size(269, 27);
             this.CoordsTextBox.TabIndex = 9;
             // 
             // blurX
             // 
-            this.blurX.Location = new System.Drawing.Point(422, 281);
+            this.blurX.Location = new System.Drawing.Point(422, 319);
             this.blurX.Name = "blurX";
             this.blurX.Size = new System.Drawing.Size(330, 56);
             this.blurX.TabIndex = 10;
@@ -156,7 +162,7 @@
             // 
             // blurY
             // 
-            this.blurY.Location = new System.Drawing.Point(422, 323);
+            this.blurY.Location = new System.Drawing.Point(419, 381);
             this.blurY.Name = "blurY";
             this.blurY.Size = new System.Drawing.Size(330, 56);
             this.blurY.TabIndex = 11;
@@ -164,7 +170,7 @@
             // 
             // cannyMin
             // 
-            this.cannyMin.Location = new System.Drawing.Point(422, 360);
+            this.cannyMin.Location = new System.Drawing.Point(422, 447);
             this.cannyMin.Name = "cannyMin";
             this.cannyMin.Size = new System.Drawing.Size(330, 56);
             this.cannyMin.TabIndex = 12;
@@ -172,7 +178,7 @@
             // 
             // cannyMax
             // 
-            this.cannyMax.Location = new System.Drawing.Point(422, 401);
+            this.cannyMax.Location = new System.Drawing.Point(422, 509);
             this.cannyMax.Name = "cannyMax";
             this.cannyMax.Size = new System.Drawing.Size(330, 56);
             this.cannyMax.TabIndex = 13;
@@ -208,11 +214,65 @@
             this.GrayMaxLabel.Size = new System.Drawing.Size(125, 27);
             this.GrayMaxLabel.TabIndex = 17;
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(1066, 260);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(125, 27);
+            this.textBox1.TabIndex = 18;
+            this.textBox1.Text = "Gray Min Value";
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(1066, 381);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(125, 27);
+            this.textBox2.TabIndex = 19;
+            this.textBox2.Text = "Gray Max Value";
+            // 
+            // textBox3
+            // 
+            this.textBox3.Location = new System.Drawing.Point(299, 512);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(125, 27);
+            this.textBox3.TabIndex = 20;
+            this.textBox3.Text = "Canny Max Value";
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(496, 410);
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(125, 27);
+            this.textBox4.TabIndex = 21;
+            this.textBox4.Text = "blurY";
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(299, 447);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(125, 27);
+            this.textBox5.TabIndex = 22;
+            this.textBox5.Text = "Canny Min Value";
+            // 
+            // textBox6
+            // 
+            this.textBox6.Location = new System.Drawing.Point(496, 348);
+            this.textBox6.Name = "textBox6";
+            this.textBox6.Size = new System.Drawing.Size(125, 27);
+            this.textBox6.TabIndex = 23;
+            this.textBox6.Text = "blurX";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1503, 609);
+            this.Controls.Add(this.textBox6);
+            this.Controls.Add(this.textBox5);
+            this.Controls.Add(this.textBox4);
+            this.Controls.Add(this.textBox3);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.GrayMaxLabel);
             this.Controls.Add(this.GrayMinLabel);
             this.Controls.Add(this.GrayMax);
@@ -270,5 +330,11 @@
         private TrackBar GrayMax;
         private TextBox GrayMinLabel;
         private TextBox GrayMaxLabel;
+        private TextBox textBox1;
+        private TextBox textBox2;
+        private TextBox textBox3;
+        private TextBox textBox4;
+        private TextBox textBox5;
+        private TextBox textBox6;
     }
 }
