@@ -30,7 +30,7 @@ namespace UR2_robot_arm2
 
 
 
-            `
+            
         public Form1()
         {
             InitializeComponent();
@@ -147,7 +147,7 @@ namespace UR2_robot_arm2
 
                 // result
                 VideoPictureBox.Image = frame.ToBitmap(); //display current frame
-                                                             
+                DecoratedPictureBox.Image = decoratedImage.ToBitmap();                                   
  
 
             }
@@ -202,105 +202,7 @@ namespace UR2_robot_arm2
             GrayMaxLabel.Text = mGrayMax.ToString();
         }
 
-        private void BrowseBtn_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog lFile = new OpenFileDialog();
-
-            if (lFile.ShowDialog() == DialogResult.OK)
-            {
-                // input
-                Mat lVideoImage = CvInvoke.Imread(lFile.FileName,
-                                     Emgu.CV.CvEnum.ImreadModes.AnyColor);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                //
-                // process
-                //
-                Mat lVideoImageDisplay = new Mat();
-
-                //resize
-                Size newSize = new Size(VideoPictureBox.Size.Width, VideoPictureBox.Height);
-                CvInvoke.Resize(lVideoImage, lVideoImageDisplay, newSize);
-
-                //display original
-                VideoPictureBox.Image = lVideoImageDisplay.ToBitmap();
-
-                //convert binary gray image
-                var lGrayImage = lVideoImageDisplay.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
-
-                GrayPictureBox.Image = lGrayImage.ToBitmap();
-
-                //grab rgb copy
-                var decoratedImage = lGrayImage.ToImage<Rgb, byte>();
-
-                //find contours:
-                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
-                {
-                    //build list of contours on the gray image
-                    CvInvoke.FindContours(lGrayImage, contours, null, RetrType.List,
-                        ChainApproxMethod.ChainApproxSimple);
-
-                    List<Bgr> lColors = new List<Bgr> { new Bgr(Color.Red), new Bgr(Color.Green), new Bgr(Color.Blue),
-                        new Bgr(Color.Yellow), new Bgr(Color.Orange), new Bgr(Color.Pink), new Bgr(Color.Purple) };
-
-
-                    //draw on the rgb image
-                    for (int i = 0; i < contours.Size; i++)
-                    {
-                        VectorOfPoint contour = contours[i];
-                        CvInvoke.Polylines(decoratedImage, contour, true, lColors[i].MCvScalar, 5);
-                        CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i].MCvScalar, 4);
-
-                    }
-                    CoordsTextBox.Text = $"{contours.Size} contours dectected";
-                }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                //resu;t
-                DecoratedPictureBox.Image = decoratedImage.ToBitmap();
-            }
-
-
-        }
+      
     }
     
 }

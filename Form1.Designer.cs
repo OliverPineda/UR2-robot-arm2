@@ -39,7 +39,6 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.CoordsTextBox = new System.Windows.Forms.TextBox();
-            this.BrowseBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.GrayPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DecoratedPictureBox)).BeginInit();
@@ -141,22 +140,11 @@
             this.CoordsTextBox.Size = new System.Drawing.Size(276, 27);
             this.CoordsTextBox.TabIndex = 20;
             // 
-            // BrowseBtn
-            // 
-            this.BrowseBtn.Location = new System.Drawing.Point(811, 523);
-            this.BrowseBtn.Name = "BrowseBtn";
-            this.BrowseBtn.Size = new System.Drawing.Size(94, 29);
-            this.BrowseBtn.TabIndex = 21;
-            this.BrowseBtn.Text = "BrowseBtn";
-            this.BrowseBtn.UseVisualStyleBackColor = true;
-            this.BrowseBtn.Click += new System.EventHandler(this.BrowseBtn_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1777, 708);
-            this.Controls.Add(this.BrowseBtn);
             this.Controls.Add(this.CoordsTextBox);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.textBox1);
@@ -195,6 +183,5 @@
         private TextBox textBox1;
         private TextBox textBox2;
         private TextBox CoordsTextBox;
-        private Button BrowseBtn;
     }
 }
