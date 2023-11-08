@@ -30,7 +30,7 @@ namespace UR2_robot_arm2
 
 
 
-
+            `
         public Form1()
         {
             InitializeComponent();
@@ -48,7 +48,7 @@ namespace UR2_robot_arm2
                 GrayMax.Value = mGrayMax;
 
                 //initialize with ifany plugged camera
-                mCapture = new VideoCapture(0); //0 means default , 1 means webcam
+                mCapture = new VideoCapture(0, VideoCapture.API.DShow); //0 means default , 1 means webcam
 
                 if (mCapture.Height == 0) //must match what mCapture is on above line
                     throw new Exception("No Camera Found");
@@ -66,36 +66,89 @@ namespace UR2_robot_arm2
         {
             while (!token.IsCancellationRequested) //while no requested cancellation
             {
-
+                // input
                 Mat frame = mCapture.QueryFrame(); // grab a new frame
 
-                    //resize to PictureBox aspect ratio
-                    int newHeight = (frame.Size.Height * VideoPictureBox.Size.Width) / frame.Size.Width;
-                    Size newSize = new Size(VideoPictureBox.Size.Width, newHeight);
-                    CvInvoke.Resize(frame, frame, newSize);
 
-                // Convert frame to grayscale
-              
-              
 
-                // Process the frame (e.g., apply blur and contour detection)
-                //   Mat blurredImage = new Mat();
-                //   Mat decoratedImage = new Mat();
-                // CvInvoke.GaussianBlur(frame, blurredImage, new Size(mBlurX, mBlurY), 0);
-                // Perform contour detection and drawing on decoratedImage
+
+
+
+
+
+
+
+
+
+
+                //
+                // process
+                //
+                Mat lVideoImageDisplay = new Mat();
+
+                //resize
+                Size newSize = new Size(VideoPictureBox.Size.Width, VideoPictureBox.Height);
+                CvInvoke.Resize(frame, lVideoImageDisplay, newSize);
+
+                //display original
+                VideoPictureBox.Image = lVideoImageDisplay.ToBitmap();
+
+                //convert binary gray image
+                var lGrayImage = lVideoImageDisplay.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
+
+                GrayPictureBox.Image = lGrayImage.ToBitmap();
+
+                //grab rgb copy
+                var decoratedImage = lGrayImage.ToImage<Rgb, byte>();
+
+                //find contours:
+                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+                {
+                    //build list of contours on the gray image
+                    CvInvoke.FindContours(lGrayImage, contours, null, RetrType.List,
+                        ChainApproxMethod.ChainApproxSimple);
+
+                    List<Bgr> lColors = new List<Bgr> { new Bgr(Color.Red), new Bgr(Color.Green), new Bgr(Color.Blue),
+                        new Bgr(Color.Yellow), new Bgr(Color.Orange), new Bgr(Color.Pink), new Bgr(Color.Purple) };
+
+            
+                  
+                    //draw on the rgb image
+                    for (int i = 0; i < contours.Size; i++)
+                    {
+                        if (contours.Size > 7)
+                            {
+                            break;
+                            }
+
+                        VectorOfPoint contour = contours[i];
+                        CvInvoke.Polylines(decoratedImage, contour, true, lColors[i % 7].MCvScalar, 5);
+                        CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i % 7].MCvScalar, 4);
+
+                    }
+                   // CoordsTextBox.Text = $"{contours.Size} contours dectected";
+                }
 
 
                 // ~60 fps -> 1000ms/60 = 16.6
                 Task.Delay(16);
 
+
+
+
+
+
+
+
+
+
+
+
+
+                // result
                 VideoPictureBox.Image = frame.ToBitmap(); //display current frame
                                                              
-                // Update GrayPictureBox with the grayscale frame
-                //GrayPictureBox.Image = grayscaleFrame.ToBitmap();
-
-                //  GrayPictureBox.Image = blurredImage.ToBitmap();
-                // DecoratedPictureBox.Image = decoratedImage.ToBitmap();
-
+ 
 
             }
 
@@ -155,9 +208,30 @@ namespace UR2_robot_arm2
 
             if (lFile.ShowDialog() == DialogResult.OK)
             {
-
+                // input
                 Mat lVideoImage = CvInvoke.Imread(lFile.FileName,
                                      Emgu.CV.CvEnum.ImreadModes.AnyColor);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //
+                // process
+                //
                 Mat lVideoImageDisplay = new Mat();
 
                 //resize
@@ -196,7 +270,32 @@ namespace UR2_robot_arm2
                     }
                     CoordsTextBox.Text = $"{contours.Size} contours dectected";
                 }
-                //display decorated image
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //resu;t
                 DecoratedPictureBox.Image = decoratedImage.ToBitmap();
             }
 

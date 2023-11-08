@@ -49,9 +49,9 @@
             // 
             // StartStopBtn
             // 
-            this.StartStopBtn.Location = new System.Drawing.Point(7, 69);
+            this.StartStopBtn.Location = new System.Drawing.Point(1210, 523);
             this.StartStopBtn.Name = "StartStopBtn";
-            this.StartStopBtn.Size = new System.Drawing.Size(56, 29);
+            this.StartStopBtn.Size = new System.Drawing.Size(92, 44);
             this.StartStopBtn.TabIndex = 0;
             this.StartStopBtn.Text = "Start";
             this.StartStopBtn.UseVisualStyleBackColor = true;
@@ -59,31 +59,31 @@
             // 
             // VideoPictureBox
             // 
-            this.VideoPictureBox.Location = new System.Drawing.Point(69, 12);
+            this.VideoPictureBox.Location = new System.Drawing.Point(12, 10);
             this.VideoPictureBox.Name = "VideoPictureBox";
-            this.VideoPictureBox.Size = new System.Drawing.Size(423, 296);
+            this.VideoPictureBox.Size = new System.Drawing.Size(514, 454);
             this.VideoPictureBox.TabIndex = 1;
             this.VideoPictureBox.TabStop = false;
             // 
             // GrayPictureBox
             // 
-            this.GrayPictureBox.Location = new System.Drawing.Point(514, 12);
+            this.GrayPictureBox.Location = new System.Drawing.Point(532, 12);
             this.GrayPictureBox.Name = "GrayPictureBox";
-            this.GrayPictureBox.Size = new System.Drawing.Size(454, 302);
+            this.GrayPictureBox.Size = new System.Drawing.Size(608, 452);
             this.GrayPictureBox.TabIndex = 6;
             this.GrayPictureBox.TabStop = false;
             // 
             // DecoratedPictureBox
             // 
-            this.DecoratedPictureBox.Location = new System.Drawing.Point(987, 10);
+            this.DecoratedPictureBox.Location = new System.Drawing.Point(1146, 10);
             this.DecoratedPictureBox.Name = "DecoratedPictureBox";
-            this.DecoratedPictureBox.Size = new System.Drawing.Size(494, 298);
+            this.DecoratedPictureBox.Size = new System.Drawing.Size(619, 454);
             this.DecoratedPictureBox.TabIndex = 7;
             this.DecoratedPictureBox.TabStop = false;
             // 
             // GrayMin
             // 
-            this.GrayMin.Location = new System.Drawing.Point(149, 314);
+            this.GrayMin.Location = new System.Drawing.Point(92, 534);
             this.GrayMin.Maximum = 255;
             this.GrayMin.Minimum = 1;
             this.GrayMin.Name = "GrayMin";
@@ -94,7 +94,7 @@
             // 
             // GrayMax
             // 
-            this.GrayMax.Location = new System.Drawing.Point(149, 362);
+            this.GrayMax.Location = new System.Drawing.Point(92, 582);
             this.GrayMax.Maximum = 255;
             this.GrayMax.Minimum = 1;
             this.GrayMax.Name = "GrayMax";
@@ -105,21 +105,21 @@
             // 
             // GrayMinLabel
             // 
-            this.GrayMinLabel.Location = new System.Drawing.Point(541, 320);
+            this.GrayMinLabel.Location = new System.Drawing.Point(484, 540);
             this.GrayMinLabel.Name = "GrayMinLabel";
             this.GrayMinLabel.Size = new System.Drawing.Size(33, 27);
             this.GrayMinLabel.TabIndex = 16;
             // 
             // GrayMaxLabel
             // 
-            this.GrayMaxLabel.Location = new System.Drawing.Point(541, 370);
+            this.GrayMaxLabel.Location = new System.Drawing.Point(484, 590);
             this.GrayMaxLabel.Name = "GrayMaxLabel";
             this.GrayMaxLabel.Size = new System.Drawing.Size(33, 27);
             this.GrayMaxLabel.TabIndex = 17;
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(69, 320);
+            this.textBox1.Location = new System.Drawing.Point(12, 540);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(74, 27);
             this.textBox1.TabIndex = 18;
@@ -127,7 +127,7 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(69, 370);
+            this.textBox2.Location = new System.Drawing.Point(12, 590);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(74, 27);
             this.textBox2.TabIndex = 19;
@@ -135,7 +135,7 @@
             // 
             // CoordsTextBox
             // 
-            this.CoordsTextBox.Location = new System.Drawing.Point(1205, 320);
+            this.CoordsTextBox.Location = new System.Drawing.Point(1325, 540);
             this.CoordsTextBox.Name = "CoordsTextBox";
             this.CoordsTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
             this.CoordsTextBox.Size = new System.Drawing.Size(276, 27);
@@ -143,7 +143,7 @@
             // 
             // BrowseBtn
             // 
-            this.BrowseBtn.Location = new System.Drawing.Point(1069, 318);
+            this.BrowseBtn.Location = new System.Drawing.Point(811, 523);
             this.BrowseBtn.Name = "BrowseBtn";
             this.BrowseBtn.Size = new System.Drawing.Size(94, 29);
             this.BrowseBtn.TabIndex = 21;
@@ -155,7 +155,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1503, 609);
+            this.ClientSize = new System.Drawing.Size(1777, 708);
             this.Controls.Add(this.BrowseBtn);
             this.Controls.Add(this.CoordsTextBox);
             this.Controls.Add(this.textBox2);
