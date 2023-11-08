@@ -30,10 +30,11 @@ namespace UR2_robot_arm2
 
 
 
-            
+
         public Form1()
         {
             InitializeComponent();
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -84,7 +85,7 @@ namespace UR2_robot_arm2
                 //
                 // process
                 //
-                Mat lVideoImageDisplay = new Mat();
+                Mat lVideoImageDisplay = frame.Clone();
 
                 //resize
                 Size newSize = new Size(VideoPictureBox.Size.Width, VideoPictureBox.Height);
@@ -111,22 +112,22 @@ namespace UR2_robot_arm2
                     List<Bgr> lColors = new List<Bgr> { new Bgr(Color.Red), new Bgr(Color.Green), new Bgr(Color.Blue),
                         new Bgr(Color.Yellow), new Bgr(Color.Orange), new Bgr(Color.Pink), new Bgr(Color.Purple) };
 
-            
-                  
+
+
                     //draw on the rgb image
                     for (int i = 0; i < contours.Size; i++)
                     {
                         if (contours.Size > 7)
-                            {
+                        {
                             break;
-                            }
+                        }
 
                         VectorOfPoint contour = contours[i];
                         CvInvoke.Polylines(decoratedImage, contour, true, lColors[i % 7].MCvScalar, 5);
                         CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i % 7].MCvScalar, 4);
 
                     }
-                   // CoordsTextBox.Text = $"{contours.Size} contours dectected";
+                    // CoordsTextBox.Text = $"{contours.Size} contours dectected";
                 }
 
 
@@ -146,9 +147,8 @@ namespace UR2_robot_arm2
 
 
                 // result
-                VideoPictureBox.Image = frame.ToBitmap(); //display current frame
-                DecoratedPictureBox.Image = decoratedImage.ToBitmap();                                   
- 
+                DecoratedPictureBox.Image = decoratedImage.ToBitmap();
+
 
             }
 
@@ -175,8 +175,8 @@ namespace UR2_robot_arm2
 
                 mIsCapturing = true; //indicate new state
                 StartStopBtn.Text = "Stop"; //inform accordingly
-           
-           }
+
+            }
 
         }
 
@@ -202,7 +202,7 @@ namespace UR2_robot_arm2
             GrayMaxLabel.Text = mGrayMax.ToString();
         }
 
-      
+
     }
-    
+
 }
