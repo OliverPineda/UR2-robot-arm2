@@ -3,18 +3,13 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Has2BeSameNameSpace;
+using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace UR2_robot_arm2
 {
     public partial class Form1 : Form
     {
-        //vars for trackbars
-        int mBlurX;
-        int mBlurY;
-        int mCannyMin;
-        int mCannyMax;
-
 
         //main capture object from Emgu.Cv MAIN CODE THAT COMMUNICATES WITH CAMERA. TELLS TO COMMUNICATE WITH CAMERA
         VideoCapture mCapture;
@@ -30,10 +25,11 @@ namespace UR2_robot_arm2
         //capturing state indicator I WANT TO KNOW THE STATE. IS THE CAMERA CAPTURING OR NOT
         bool mIsCapturing = false;
 
-        int mGrayMin = 1;
-        int mGrayMax = 255;
+        int mGrayMin = 70;
+        int mGrayMax = 220;
 
-        private SerialCom SerialCommunication; //this is needed created class LINKS UP TO CLASS calls it
+
+
 
         public Form1()
         {
@@ -45,10 +41,16 @@ namespace UR2_robot_arm2
             try
 
             {
-                //initialize with ifany plugged camera
-                mCapture = new VideoCapture(0);
+                GrayMinLabel.Text = mGrayMin.ToString();
+                GrayMaxLabel.Text = mGrayMax.ToString();
 
-                if (mCapture.Height == 0)
+                GrayMin.Value = mGrayMin;
+                GrayMax.Value = mGrayMax;
+
+                //initialize with ifany plugged camera
+                mCapture = new VideoCapture(0); //0 means default , 1 means webcam
+
+                if (mCapture.Height == 0) //must match what mCapture is on above line
                     throw new Exception("No Camera Found");
             }
             catch (Exception ex)
@@ -56,9 +58,50 @@ namespace UR2_robot_arm2
             {
                 MessageBox.Show(ex.Message);
             }
-            SerialCommunication = new SerialCom("COM6"); // serial port that communicates with arduino
+
 
         }
+
+        private void DisplayWebcam(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested) //while no requested cancellation
+            {
+
+                Mat frame = mCapture.QueryFrame(); // grab a new frame
+
+                    //resize to PictureBox aspect ratio
+                    int newHeight = (frame.Size.Height * VideoPictureBox.Size.Width) / frame.Size.Width;
+                    Size newSize = new Size(VideoPictureBox.Size.Width, newHeight);
+                    CvInvoke.Resize(frame, frame, newSize);
+
+                // Convert frame to grayscale
+              
+              
+
+                // Process the frame (e.g., apply blur and contour detection)
+                //   Mat blurredImage = new Mat();
+                //   Mat decoratedImage = new Mat();
+                // CvInvoke.GaussianBlur(frame, blurredImage, new Size(mBlurX, mBlurY), 0);
+                // Perform contour detection and drawing on decoratedImage
+
+
+                // ~60 fps -> 1000ms/60 = 16.6
+                Task.Delay(16);
+
+                VideoPictureBox.Image = frame.ToBitmap(); //display current frame
+                                                             
+                // Update GrayPictureBox with the grayscale frame
+                //GrayPictureBox.Image = grayscaleFrame.ToBitmap();
+
+                //  GrayPictureBox.Image = blurredImage.ToBitmap();
+                // DecoratedPictureBox.Image = decoratedImage.ToBitmap();
+
+
+            }
+
+        }
+
+
 
         private void StartStopBtn_Click(object sender, EventArgs e)
         {
@@ -79,194 +122,19 @@ namespace UR2_robot_arm2
 
                 mIsCapturing = true; //indicate new state
                 StartStopBtn.Text = "Stop"; //inform accordingly
-            }
-        }
-        private void DisplayWebcam(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested) //while no requested cancellation
-            {
-                Mat frame = mCapture.QueryFrame(); // grab a new frame
-
-                //resize to PictureBox aspect ratio
-                int newHeight = (frame.Size.Height * VideoPictureBox.Size.Width) / frame.Size.Width;
-                Size newSize = new Size(VideoPictureBox.Size.Width, newHeight);
-                CvInvoke.Resize(frame, frame, newSize);
-
-                // ~60 fps -> 1000ms/60 = 16.6
-                Task.Delay(16);
-
-                VideoPictureBox.Image = frame.ToBitmap(); //display current frame
-            }
+           
+           }
 
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            //DIspose all processing threads to avoid orphaned processes
+            if (mIsCapturing)
+            {
+                mCancellationToken.Cancel();
+            }
             mCapture.Dispose();
             mCancellationToken.Dispose();
-        }
-
-        private void arduinoLEDon_Click(object sender, EventArgs e)
-        {
-            int serialData = 0;
-            if (mIsCapturing)
-                SerialCommunication.Move(1); //1 for LED on
-            serialData = 1;
-
-            //set up label to output the serial input
-            Invoke(new Action(() =>
-            {
-                SerialDataChar.Text = $"{serialData}";
-
-            }));
-        }
-
-        private void arduinoLEDoff_Click(object sender, EventArgs e)
-        {
-            int serialData = 0;
-            if (mIsCapturing)
-                SerialCommunication.Move(0); //0 for lead off
-            serialData = 0;
-
-            //set up label to output the serial input
-            Invoke(new Action(() =>
-            {
-                SerialDataChar.Text = $"{serialData}";
-
-            }));
-        }
-
-        private void BrowseBtn_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog lFile = new OpenFileDialog();
-
-            if (lFile.ShowDialog() == DialogResult.OK)
-            {
-                // MessageBox.Show(lFile.FileName, "file to open.."
-
-                Mat lOriginalImage = CvInvoke.Imread(lFile.FileName, Emgu.CV.CvEnum.ImreadModes.AnyColor);
-
-                Mat lOriginalImageDisplay = new Mat();
-
-                //resize to PictureBox aspect ratio
-                int newHeight = (lOriginalImage.Size.Height * sourcePictureBox.Size.Width) / lOriginalImage.Size.Width;
-                Size newSize = new Size(sourcePictureBox.Size.Width, sourcePictureBox.Height);
-
-                CvInvoke.Resize(lOriginalImage, lOriginalImage, newSize);
-
-                //display the original image
-                sourcePictureBox.Image = lOriginalImage.ToBitmap();
-
-                //vert to binary gray image
-                var lGrayImage = lOriginalImage.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
-
-                //Sample for gaussian blur;
-               var blurredImage = new Mat();
-                var cannyImage = new Mat();
-                var decoratedImage = new Mat();
-                CvInvoke.GaussianBlur(lOriginalImage, lGrayImage, new Size(3, 3), 0); // values are blur amounts 1-9. blurX blurY must be odd numbers for 9 it is 3 by 3 there will be a middle box
-
-                //convert to B/W
-                CvInvoke.CvtColor(lGrayImage, lGrayImage, typeof(Bgr), typeof(Gray));
-
-                // apply canny:
-                // NOTE: Canny function can frequently create duplicate lines on the same shape
-                //       depending on blur amount and threshold values, some tweaking might be needed.
-                //       You might also find that not using Canny and instead using FindContours on
-                //       a binary-threshold image is more accurate. 
-                CvInvoke.Canny(lGrayImage, cannyImage, 150, 255); //values are cannyMin and cannyMax, from 1-255 min and max
-
-                // make a copy of the canny image, convert it to color for decorating:
-                CvInvoke.CvtColor(cannyImage, decoratedImage, typeof(Gray), typeof(Bgr));
-
-                // find contours:
-                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
-                {
-                    // Build list of contours
-                    CvInvoke.FindContours(lGrayImage, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-
-                    List<Bgr> lColors = new List<Bgr>{ new Bgr(Color.Red),
-                                                        new Bgr(Color.Green),
-                                                        new Bgr(Color.Blue),
-                                                        new Bgr(Color.Pink),
-                                                        new Bgr(Color.Yellow),
-                                                        new Bgr(Color.Orange),
-                                                        new Bgr(Color.Purple)};
-                    // remove duplicate contours
-                    //List<bool> lIsDuplicateFlags = Enumerable.Repeat(false, contours.Size).ToList(); ;
-
-                    //var PositionThreshold = 10;
-
-                    //for (int i = 0; i < contours.Size - 1; i++)
-                    //{
-                    //    var lCurPosition = contours[i][0];
-
-                    //    for (int j = i + 1; j < contours.Size; j++)
-                    //    {
-                    //        var lNextPosition = contours[j][0];
-
-                    //        var lDistance = Math.Sqrt((Math.Pow(lCurPosition.X - lNextPosition.X, 2) + Math.Pow(lCurPosition.Y - lNextPosition.Y, 2)));
-
-                    //        if (lDistance < PositionThreshold)
-                    //        {
-                    //            lIsDuplicateFlags[i] = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //}
-
-                   // var lKeptCount = 0;
-                    for (int i = 0; i < contours.Size; i++)
-                    {
-                        //if (lIsDuplicateFlags[i] == true)
-                        //{
-                        //    continue;
-                        //}
-                        // lKeptCount++;
-
-                        if (i < lColors.Count)
-                        {
-                            VectorOfPoint contour = contours[i];
-
-                            if (contour.Size > 0)
-                            {
-                                //VectorOfPoint contour = contours[i];
-                                CvInvoke.Polylines(decoratedImage, contour, true, lColors[i].MCvScalar, 5);
-                                CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i].MCvScalar, 4);
-                            }
-                        }
-                    }
-
-                    //MessageBox.Show($"There are {contours.Size} contours detected");
-                    CoordsTextBox.Text = $"{contours.Size} contours detected";
-                }
-
-                // output images:
-               
-                blurredPictureBox.Image = lGrayImage.ToBitmap();
-                contourPictureBox.Image = decoratedImage.ToBitmap();
-            }
-        }
-
-        private void blurX_Scroll(object sender, EventArgs e)
-        {
-            mBlurX = blurX.Value; // the member int = trackbar value. the scroll sets the value
-        }
-
-        private void blurY_Scroll(object sender, EventArgs e)
-        {
-            mBlurY = blurY.Value; //the member int = trackbar value. the scroll sets the value
-        }
-
-        private void cannyMin_Scroll(object sender, EventArgs e)
-        {
-            mCannyMin = cannyMin.Value; //the member int = trackbar value. the scroll sets the value
-        }
-
-        private void cannyMax_Scroll(object sender, EventArgs e)
-        {
-            mCannyMax = cannyMax.Value; //the member int = trackbar value. the scroll sets the value
         }
 
         private void GrayMin_Scroll(object sender, EventArgs e)
@@ -280,5 +148,60 @@ namespace UR2_robot_arm2
             mGrayMax = GrayMax.Value;
             GrayMaxLabel.Text = mGrayMax.ToString();
         }
+
+        private void BrowseBtn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog lFile = new OpenFileDialog();
+
+            if (lFile.ShowDialog() == DialogResult.OK)
+            {
+
+                Mat lVideoImage = CvInvoke.Imread(lFile.FileName,
+                                     Emgu.CV.CvEnum.ImreadModes.AnyColor);
+                Mat lVideoImageDisplay = new Mat();
+
+                //resize
+                Size newSize = new Size(VideoPictureBox.Size.Width, VideoPictureBox.Height);
+                CvInvoke.Resize(lVideoImage, lVideoImageDisplay, newSize);
+
+                //display original
+                VideoPictureBox.Image = lVideoImageDisplay.ToBitmap();
+
+                //convert binary gray image
+                var lGrayImage = lVideoImageDisplay.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
+
+                GrayPictureBox.Image = lGrayImage.ToBitmap();
+
+                //grab rgb copy
+                var decoratedImage = lGrayImage.ToImage<Rgb, byte>();
+
+                //find contours:
+                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+                {
+                    //build list of contours on the gray image
+                    CvInvoke.FindContours(lGrayImage, contours, null, RetrType.List,
+                        ChainApproxMethod.ChainApproxSimple);
+
+                    List<Bgr> lColors = new List<Bgr> { new Bgr(Color.Red), new Bgr(Color.Green), new Bgr(Color.Blue),
+                        new Bgr(Color.Yellow), new Bgr(Color.Orange), new Bgr(Color.Pink), new Bgr(Color.Purple) };
+
+
+                    //draw on the rgb image
+                    for (int i = 0; i < contours.Size; i++)
+                    {
+                        VectorOfPoint contour = contours[i];
+                        CvInvoke.Polylines(decoratedImage, contour, true, lColors[i].MCvScalar, 5);
+                        CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i].MCvScalar, 4);
+
+                    }
+                    CoordsTextBox.Text = $"{contours.Size} contours dectected";
+                }
+                //display decorated image
+                DecoratedPictureBox.Image = decoratedImage.ToBitmap();
+            }
+
+
+        }
     }
+    
 }
