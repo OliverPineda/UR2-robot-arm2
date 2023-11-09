@@ -25,9 +25,6 @@ namespace UR2_robot_arm2
         //capturing state indicator I WANT TO KNOW THE STATE. IS THE CAMERA CAPTURING OR NOT
         bool mIsCapturing = false;
 
-        int mGrayMin = 70;
-        int mGrayMax = 220;
-
 
 
 
@@ -42,17 +39,24 @@ namespace UR2_robot_arm2
             try
 
             {
-                GrayMinLabel.Text = mGrayMin.ToString();
-                GrayMaxLabel.Text = mGrayMax.ToString();
-
-                GrayMin.Value = mGrayMin;
-                GrayMax.Value = mGrayMax;
-
                 //initialize with ifany plugged camera
                 mCapture = new VideoCapture(0, VideoCapture.API.DShow); //0 means default , 1 means webcam
 
-                if (mCapture.Height == 0) //must match what mCapture is on above line
+                if (mCapture.Height == 1) //must match what mCapture is on above line
                     throw new Exception("No Camera Found");
+
+                //initalize new thread
+                mCaptureThread = new Thread(() => DisplayWebcam(mCancellationToken.Token));
+
+                // Start the thread
+                mCaptureThread.Start();
+
+                // Indicate new state
+                mIsCapturing = true;
+
+                // Optional: Update UI or perform any other initialization
+
+                // The picture boxes will be updated in the DisplayWebcam method
             }
             catch (Exception ex)
 
@@ -68,141 +72,149 @@ namespace UR2_robot_arm2
             while (!token.IsCancellationRequested) //while no requested cancellation
             {
                 // input
-                Mat frame = mCapture.QueryFrame(); // grab a new frame
+                Mat sourceFrame = mCapture.QueryFrame(); // grab a new frame
 
+                // resize to PictureBox aspect ratio
+                int newHeight = (sourceFrame.Size.Height * VideoPictureBox.Size.Width) / sourceFrame.Size.Width;
 
+                Size newSize = new Size(VideoPictureBox.Size.Width, newHeight);
 
+                CvInvoke.Resize(sourceFrame, sourceFrame, newSize);
 
+                // display the image in the source PictureBox
+                VideoPictureBox.Image = sourceFrame.ToBitmap();
 
+                // copy the source image so we can display a copy with artwork without editing the original:
+                Mat sourceFrameWithArt = sourceFrame.Clone();
 
+                // create an image version of the source frame, will be used when warping the image
+                Image<Bgr, byte> sourceFrameWarped = sourceFrame.ToImage<Bgr, byte>();
 
+                // Isolating the ROI: convert to a gray, apply binary threshold:
+                Image<Gray, byte> grayImg = sourceFrame.ToImage<Gray, byte>().ThresholdBinary(new Gray(125), new
+                Gray(255));
 
-
-
-
-
-
-                //
-                // process
-                //
-                Mat lVideoImageDisplay = frame.Clone();
-
-                //resize
-                Size newSize = new Size(VideoPictureBox.Size.Width, VideoPictureBox.Height);
-                CvInvoke.Resize(frame, lVideoImageDisplay, newSize);
-
-                //display original
-                VideoPictureBox.Image = lVideoImageDisplay.ToBitmap();
-
-                //convert binary gray image
-                var lGrayImage = lVideoImageDisplay.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
-
-                GrayPictureBox.Image = lGrayImage.ToBitmap();
-
-                //grab rgb copy
-                var decoratedImage = lGrayImage.ToImage<Rgb, byte>();
-
-                //find contours:
                 using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
                 {
-                    //build list of contours on the gray image
-                    CvInvoke.FindContours(lGrayImage, contours, null, RetrType.List,
-                        ChainApproxMethod.ChainApproxSimple);
+                    // Build list of contours
+                    CvInvoke.FindContours(grayImg, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
 
-                    List<Bgr> lColors = new List<Bgr> { new Bgr(Color.Red), new Bgr(Color.Green), new Bgr(Color.Blue),
-                        new Bgr(Color.Yellow), new Bgr(Color.Orange), new Bgr(Color.Pink), new Bgr(Color.Purple) };
-
-
-
-                    //draw on the rgb image
-                    for (int i = 0; i < contours.Size; i++)
+                    // Selecting largest contour
+                    if (contours.Size > 0)
                     {
-                        if (contours.Size > 7)
+                        double maxArea = 0;
+                        int chosen = 0;
+
+                        for (int i = 0; i < contours.Size; i++)
                         {
-                            break;
+                            VectorOfPoint contour = contours[i];
+                            double area = CvInvoke.ContourArea(contour);
+                            if (area > maxArea)
+                            {
+                                maxArea = area;
+                                chosen = i;
+                            }
                         }
 
-                        VectorOfPoint contour = contours[i];
-                        CvInvoke.Polylines(decoratedImage, contour, true, lColors[i % 7].MCvScalar, 5);
-                        CvInvoke.Circle(decoratedImage, contour[0], 5, lColors[i % 7].MCvScalar, 4);
+                        // Getting minimal rectangle which contains the contour
+                        Rectangle boundingBox = CvInvoke.BoundingRectangle(contours[chosen]);
+
+                        // Draw on the display frame
+                        MarkDetectedObject(sourceFrameWithArt, contours[chosen], boundingBox, maxArea);
+
+                        // Create a slightly larger bounding rectangle, we'll set it as the ROI for later warping
+                        sourceFrameWarped.ROI = new Rectangle((int)Math.Min(0, boundingBox.X - 30),
+
+                        (int)Math.Min(0, boundingBox.Y - 30),
+
+                        (int)Math.Max(sourceFrameWarped.Width - 1, boundingBox.X + boundingBox.Width + 30),
+
+                        (int)Math.Max(sourceFrameWarped.Height - 1, boundingBox.Y + boundingBox.Height + 30));
+                        // Display the version of the source image with the added artwork, simulating ROI focus:
+
+                        GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
+                        // Warp the image, output it
+
+                        DecoratedPictureBox.Image = WarpImage(sourceFrameWarped, contours[chosen]).ToBitmap();
 
                     }
-                    // CoordsTextBox.Text = $"{contours.Size} contours dectected";
+                }
+            }
+        }
+        private static Image<Bgr, Byte> WarpImage(Image<Bgr, byte> frame, VectorOfPoint contour)
+        {
+            // set the output size:
+            var size = new Size(frame.Width, frame.Height);
+
+            using (VectorOfPoint approxContour = new VectorOfPoint())
+            {
+                CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * 0.05, true);
+
+                // get an array of points in the contour
+                Point[] points = approxContour.ToArray();
+
+                // if array length isn't 4, something went wrong, abort warping process (for demo, draw points instead)
+                if (points.Length != 4)
+                {
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        frame.Draw(new CircleF(points[i], 5), new Bgr(Color.Red), 5);
+                    }
+                    return frame;
+                }
+                IEnumerable<Point> query = points.OrderBy(point => point.Y).ThenBy(point => point.X);
+
+                PointF[] ptsSrc = new PointF[4];
+
+                PointF[] ptsDst = new PointF[] { new PointF(0, 0), new PointF(size.Width - 1, 0), new PointF(0, size.Height - 1),
+                new PointF(size.Width - 1, size.Height - 1) };
+
+                for (int i = 0; i < 4; i++)
+                {
+                    ptsSrc[i] = new PointF(query.ElementAt(i).X, query.ElementAt(i).Y);
                 }
 
-
-                // ~60 fps -> 1000ms/60 = 16.6
-                Task.Delay(16);
-
-
-
-
-
-
-
-
-
-
-
-
-
-                // result
-                DecoratedPictureBox.Image = decoratedImage.ToBitmap();
-
-
+                using (var matrix = CvInvoke.GetPerspectiveTransform(ptsSrc, ptsDst))
+                {
+                    using (var cutImagePortion = new Mat())
+                    {
+                        CvInvoke.WarpPerspective(frame, cutImagePortion, matrix, size, Inter.Cubic);
+                        return cutImagePortion.ToImage<Bgr, Byte>();
+                    }
+                }
             }
-
         }
-
-
-
-        private void StartStopBtn_Click(object sender, EventArgs e)
+        private static void MarkDetectedObject(Mat frame, VectorOfPoint contour, Rectangle boundingBox, double area)
         {
-            if (mIsCapturing) //if live, stop it
+            // Drawing contour and box around it
+            CvInvoke.Polylines(frame, contour, true, new Bgr(Color.Red).MCvScalar);
+
+            CvInvoke.Rectangle(frame, boundingBox, new Bgr(Color.Red).MCvScalar);
+
+            // Write information next to marked object
+            Point center = new Point(boundingBox.X + boundingBox.Width / 2, boundingBox.Y + boundingBox.Height / 2);
+
+            var info = new string[] 
             {
-                mCancellationToken.Cancel(); //request a stop
-                mIsCapturing = false; //indicate new state
-                StartStopBtn.Text = "Start"; //inform accordingly
-            }
-            else // if dead, start it
+                   $"Area: {area}",
+            $"Position: {center.X}, {center.Y}"
+            };
+
+            WriteMultilineText(frame, info, new Point(center.X, boundingBox.Bottom + 12));
+        }
+        private static void WriteMultilineText(Mat frame, string[] lines, Point origin)
+        {
+            for (int i = 0; i < lines.Length; i++)
             {
-                mCancellationToken = new(); //reinitialize
+                int y = i * 10 + origin.Y; // Moving down on each line
 
-                //initilize new thread
-                mCaptureThread = new(() => DisplayWebcam(mCancellationToken.Token));
+                CvInvoke.PutText(frame, lines[i], new Point(origin.X, y),
 
-                mCaptureThread.Start(); //start it
-
-                mIsCapturing = true; //indicate new state
-                StartStopBtn.Text = "Stop"; //inform accordingly
-
+                FontFace.HersheyPlain, 0.8, new Bgr(Color.Red).MCvScalar);
             }
 
-        }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            if (mIsCapturing)
-            {
-                mCancellationToken.Cancel();
-            }
-            mCapture.Dispose();
-            mCancellationToken.Dispose();
         }
-
-        private void GrayMin_Scroll(object sender, EventArgs e)
-        {
-            mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
-            GrayMinLabel.Text = mGrayMin.ToString();
-        }
-
-        private void GrayMax_Scroll(object sender, EventArgs e)
-        {
-            mGrayMax = GrayMax.Value;
-            GrayMaxLabel.Text = mGrayMax.ToString();
-        }
-
 
     }
-
 }
