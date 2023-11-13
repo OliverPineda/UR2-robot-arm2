@@ -25,8 +25,10 @@ namespace UR2_robot_arm2
         //capturing state indicator I WANT TO KNOW THE STATE. IS THE CAMERA CAPTURING OR NOT
         bool mIsCapturing = false;
 
+        int mGrayMin = 1;
+        int mGrayMax = 255;
 
-
+        Mat mOriginalImage;
 
         public Form1()
         {
@@ -42,17 +44,17 @@ namespace UR2_robot_arm2
                 //initialize with ifany plugged camera
                 mCapture = new VideoCapture(0, VideoCapture.API.DShow); //0 means default , 1 means webcam
 
-                if (mCapture.Height == 1) //must match what mCapture is on above line
+                if (mCapture.Height == 0) //must match what mCapture is on above line
                     throw new Exception("No Camera Found");
 
                 //initalize new thread
-                mCaptureThread = new Thread(() => DisplayWebcam(mCancellationToken.Token));
+               // mCaptureThread = new Thread(() => DisplayWebcam(mCancellationToken.Token));
 
                 // Start the thread
-                mCaptureThread.Start();
+               // mCaptureThread.Start();
 
                 // Indicate new state
-                mIsCapturing = true;
+                //mIsCapturing = true;
 
                 // Optional: Update UI or perform any other initialization
 
@@ -216,5 +218,143 @@ namespace UR2_robot_arm2
 
         }
 
+        private void BrowseBtn_Click(object sender, EventArgs e)
+        {
+            mCancellationToken.Cancel(); //request a stop
+            mIsCapturing = false; //indicate new state
+
+            OpenFileDialog lFile = new OpenFileDialog();
+
+            if (lFile.ShowDialog() == DialogResult.OK)
+            {
+
+                mOriginalImage = CvInvoke.Imread(lFile.FileName,
+                                        Emgu.CV.CvEnum.ImreadModes.AnyColor);
+
+                ProcessImage();
+            }
+        }
+
+        private void GrayMin_Scroll(object sender, EventArgs e)
+        {
+            mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
+            GrayMinLabel.Text = GrayMin.ToString();
+            ProcessImage();
+
+        }
+
+        private void GrayMax_Scroll(object sender, EventArgs e)
+        {
+            mGrayMax = GrayMax.Value;
+            GrayMaxLabel.Text = GrayMax.ToString();
+            ProcessImage();
+        }
+
+        void ProcessImage()
+        {
+            Mat lOriginalImageDisplay = new Mat();
+
+            //resize to PictureBox aspect ratio
+            Size newSize = new Size(VideoPictureBox.Size.Width,
+                                        VideoPictureBox.Height);
+            CvInvoke.Resize(mOriginalImage, lOriginalImageDisplay, newSize);
+
+            // display the original image
+            VideoPictureBox.Image = lOriginalImageDisplay.ToBitmap();
+
+            // convert to binary gray image
+            var lGrayImage = lOriginalImageDisplay.ToImage<Gray, byte>()
+                                .ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax))
+                                .Mat;
+            GrayPictureBox.Image = lGrayImage.ToBitmap();
+
+            // grab an rgb copy
+            var lDecoratedImage = lGrayImage.ToImage<Rgb, byte>();
+
+            // find lContours:
+            using (VectorOfVectorOfPoint lContours = new VectorOfVectorOfPoint())
+            {
+                // Build list of lContours on the gray image
+                CvInvoke.FindContours(lGrayImage, lContours, null, RetrType.List,
+                                        ChainApproxMethod.ChainApproxSimple);
+
+                List<Bgr> lColors = new List<Bgr>{ new Bgr(Color.Red),
+                                                        new Bgr(Color.Green),
+                                                        new Bgr(Color.Blue),
+                                                        new Bgr(Color.Yellow),
+                                                        new Bgr(Color.Orange),
+                                                        new Bgr(Color.Pink),
+                                                        new Bgr(Color.Purple)};
+
+                for (int i = 0; i < lContours.Size; i++)
+                {
+                    //VectorOfPoint contour = lContours[i];
+                    //CvInvoke.Polylines(lDecoratedImage, contour, true, lColors[i].MCvScalar, 5);
+                    //CvInvoke.Circle(lDecoratedImage, contour[0], 5, lColors[i].MCvScalar, 4);
+
+                    double lCurPerimeter = CvInvoke.ArcLength(lContours[i], true);
+                    VectorOfPoint lCurApprox = new VectorOfPoint();
+                    CvInvoke.ApproxPolyDP(lContours[i], lCurApprox, 0.04 * lCurPerimeter, true);
+
+                    CvInvoke.DrawContours(lDecoratedImage, lContours, i, new MCvScalar(0, 0, 255), 2);
+
+                    //lMoments  center of the shape
+
+                    var lMoments = CvInvoke.Moments(lContours[i]);
+                    int lCenterX = (int)(lMoments.M10 / lMoments.M00);
+                    int lCenterY = (int)(lMoments.M01 / lMoments.M00);
+
+                    if (lCurApprox.Size == 3)
+                    {
+                        CvInvoke.PutText(lDecoratedImage, "Triangle", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                    }
+
+                    if (lCurApprox.Size == 4)
+                    {
+                        Rectangle rect = CvInvoke.BoundingRectangle(lContours[i]);
+
+                        double ar = (double)rect.Width / rect.Height;
+
+                        if (ar >= 0.95 && ar <= 1.05)
+                        {
+                            CvInvoke.PutText(lDecoratedImage, "Square", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                        }
+                        else
+                        {
+                            CvInvoke.PutText(lDecoratedImage, "Rectangle", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                        }
+
+                    }
+
+                    if (lCurApprox.Size == 6)
+                    {
+                        CvInvoke.PutText(lDecoratedImage, "Hexagon", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                    }
+
+
+                    if (lCurApprox.Size > 6)
+                    {
+                        CvInvoke.PutText(lDecoratedImage, "Circle", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                    }
+
+                    if (lCurApprox.Size == 5)
+                    {
+                        CvInvoke.PutText(lDecoratedImage, "Pentagon", new Point(lCenterX, lCenterY),
+                            Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                    }
+
+                }
+
+                CoordsTextBox.Text = $"{lContours.Size} lContours detected.";
+            }
+
+            // display decorated image
+            DecoratedPictureBox.Image = lDecoratedImage.ToBitmap();
+        }
     }
 }
