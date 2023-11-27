@@ -5,7 +5,9 @@ using Emgu.CV.Util;
 using Has2BeSameNameSpace;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO.Ports;
 using System.Linq.Expressions;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace UR2_robot_arm2
@@ -32,9 +34,33 @@ namespace UR2_robot_arm2
 
         Mat mOriginalImage;
 
+        //Serial Communication
+        SerialPort mArduinoSerial = new SerialPort();
+        Thread mSerialMonitoringThread;
+        CancellationTokenSource mSerialCancellationToken = new();
+        int mContoursCount = 0;
+        bool mFoundIsValid = false;
+        bool mReplyIsReady = false;
+
+
         public Form1()
         {
             InitializeComponent();
+
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //Dispose all processing threads to avoid orphaned processes
+            if (mIsCapturing)
+            {
+                mCancellationToken.Cancel();
+            }
+            mCapture.Dispose();
+            mCancellationToken.Dispose();
+
+            mSerialCancellationToken.Cancel();
+            mSerialCancellationToken.Dispose();
 
         }
 
@@ -61,14 +87,89 @@ namespace UR2_robot_arm2
                 // Optional: Update UI or perform any other initialization
 
                 // The picture boxes will be updated in the DisplayWebcam method
+
+                //initialize serial port
+                mArduinoSerial.PortName = "COM6";
+                mArduinoSerial.BaudRate = 9600;
+                mArduinoSerial.Open();
+
             }
             catch (Exception ex)
 
             {
                 MessageBox.Show(ex.Message);
+                Close();
+
             }
 
+        }
 
+        private void SendSerialComm()
+        {
+            if (!mFoundIsValid)
+                return;
+
+            try
+            {
+                byte[] buffer = new byte[3]
+                {
+                    Encoding.ASCII.GetBytes("<")[0],
+                    Convert.ToByte(mContoursCount),
+                    Encoding.ASCII.GetBytes(">")[0]
+                };
+                mArduinoSerial.Write(buffer, 0, buffer.Length);
+                mReplyIsReady = true;
+
+                mSerialCancellationToken = new();
+                mSerialMonitoringThread = new(() => MonitorSerialData(mSerialCancellationToken.Token));
+                mSerialMonitoringThread.Start();
+
+            }
+            catch(Exception ex)
+            {
+                ArduinoDataTextBox.Text = "Something is wrong!";
+            }
+        }
+
+        private void MonitorSerialData(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested && mReplyIsReady)
+            {
+                //block unitl \n character is received, extract command data
+                string msg = mArduinoSerial.ReadLine();
+
+                mReplyIsReady = false;
+
+                //confirm the string has both < and > characters
+                if (msg.IndexOf("<") == - 1 || msg.IndexOf(">") == -1)
+                {
+                    continue;
+                }
+
+                //remove everhything before (and including) the < character
+                msg = msg.Substring(msg.IndexOf("<") + 1);
+
+                //remove everything after (and including) the > character
+                msg = msg.Remove(msg.IndexOf(">"));
+
+                //if the resulting string is empty, disregard and move on
+                if (msg.Length == 0)
+                {
+                    continue;
+                }
+
+                //Is this really a 'R'eply?
+                if (msg.Substring(0, 1) == "R")
+                {
+                    //comand is to display the point data, output to the test field
+                    Invoke(new Action(() =>
+                    {
+                        ArduinoDataTextBox.Text = $"Returned Data: {msg.Substring(1)}";
+
+                    }));
+                }
+
+            }
         }
 
         private void DisplayWebcam(CancellationToken token)
@@ -234,22 +335,25 @@ namespace UR2_robot_arm2
                                         Emgu.CV.CvEnum.ImreadModes.AnyColor);
 
                 ProcessImage();
+                SendSerialComm();
             }
         }
 
         private void GrayMin_Scroll(object sender, EventArgs e)
         {
             mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
-            GrayMinLabel.Text = GrayMin.ToString();
+            GrayMinLabel.Text = mGrayMin.ToString();
             ProcessImage();
+           // SendSerialComm();
 
         }
 
         private void GrayMax_Scroll(object sender, EventArgs e)
         {
             mGrayMax = GrayMax.Value;
-            GrayMaxLabel.Text = GrayMax.ToString();
+            GrayMaxLabel.Text = mGrayMax.ToString();
             ProcessImage();
+            //SendSerialComm();
         }
 
         void ProcessImage()
@@ -285,6 +389,10 @@ namespace UR2_robot_arm2
             // find lContours:
             using (VectorOfVectorOfPoint lContours = new VectorOfVectorOfPoint())
             {
+                mFoundIsValid = false;
+                ArduinoDataTextBox.Text = "";
+
+
                 // Build list of lContours on the gray image
                 CvInvoke.FindContours(lGrayImage, lContours, null, RetrType.List,
                                         ChainApproxMethod.ChainApproxSimple);
@@ -292,6 +400,8 @@ namespace UR2_robot_arm2
                 // Selecting largest contour
                 if (lContours.Size > 0)
                 {
+                    mFoundIsValid = true;
+                    //Find largest contour
                     double maxArea = 0;
                     int chosen = 0;
                     for (int i = 0; i < lContours.Size; i++)
@@ -310,6 +420,7 @@ namespace UR2_robot_arm2
 
                     // Draw on the display frame
                     MarkDetectedObject(sourceFrameWithArt, lContours[chosen], boundingBox, maxArea);
+
                     // Create a slightly larger bounding rectangle, we'll set it as the ROI for later warping
                     sourceFrameWarped.ROI = new Rectangle((int)Math.Min(0, boundingBox.X - 30),
                     (int)Math.Min(0, boundingBox.Y - 30),
@@ -319,7 +430,10 @@ namespace UR2_robot_arm2
                     boundingBox.Height + 30));
 
                     // Display the version of the source image with the added artwork, simulating ROI focus:
-                    GrayPictureBox.Image = lDecoratedImage.ToBitmap();    // was....   GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
+                    //lDecoratedImage.ToBitmap is for AREA AND POS., .sourseFrameWithArt.TopBitmap is for grayscale adjusting.
+                    //GrayPictureBox.Image = lDecoratedImage.ToBitmap();    // was....   GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
+                    GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
+
 
                     Image<Bgr, Byte> warpedFrame = WarpImage(sourceFrameWarped, lContours[chosen]);
                     Image<Gray, Byte> grayWarpedFrame = warpedFrame.Convert<Gray, Byte>();
@@ -406,8 +520,15 @@ namespace UR2_robot_arm2
 
                     // display decorated image
                     DecoratedPictureBox.Image = warpedFrame.ToBitmap();
+
+                    mContoursCount = lContours.Size;
+
                 }
 
+                else
+                {
+                    ArduinoDataTextBox.Text = "Invalid";
+                }
 
 
             }
