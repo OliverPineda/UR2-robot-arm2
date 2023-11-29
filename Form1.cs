@@ -111,12 +111,17 @@ namespace UR2_robot_arm2
 
             try
             {
-                byte[] buffer = new byte[3]
+                //type     0=triangle   1=square
+                //send number of contours and iterate till zero
+                //<20,100.0> <400,242.1> <134,232.1>   split on dot. after each dot is the type
+                byte[] buffer = new byte[3] //number
                 {
                     Encoding.ASCII.GetBytes("<")[0],
                     Convert.ToByte(mContoursCount),
                     Encoding.ASCII.GetBytes(">")[0]
                 };
+                //if (mProcessInProgress == false) do bottom in bradckets
+
                 mArduinoSerial.Write(buffer, 0, buffer.Length);
                 mReplyIsReady = true;
 
@@ -344,7 +349,6 @@ namespace UR2_robot_arm2
             mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
             GrayMinLabel.Text = mGrayMin.ToString();
             ProcessImage();
-           // SendSerialComm();
 
         }
 
@@ -353,7 +357,7 @@ namespace UR2_robot_arm2
             mGrayMax = GrayMax.Value;
             GrayMaxLabel.Text = mGrayMax.ToString();
             ProcessImage();
-            //SendSerialComm();
+       
         }
 
         void ProcessImage()
@@ -415,6 +419,7 @@ namespace UR2_robot_arm2
                         }
                     }
 
+
                     // Getting minimal rectangle which contains the contour
                     Rectangle boundingBox = CvInvoke.BoundingRectangle(lContours[chosen]);
 
@@ -470,7 +475,7 @@ namespace UR2_robot_arm2
 
                         if (lCurApprox.Size == 3)
                         {
-                            CvInvoke.PutText(warpedFrame, "Triangle", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Triangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
@@ -482,12 +487,12 @@ namespace UR2_robot_arm2
 
                             if (ar >= 0.95 && ar <= 1.05)
                             {
-                                CvInvoke.PutText(warpedFrame, "Square", new Point(lCenterX, lCenterY),
+                                CvInvoke.PutText(warpedFrame, $"Square {lCenterX}, {lCenterY}",  new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                             }
                             else
                             {
-                                CvInvoke.PutText(warpedFrame, "Rectangle", new Point(lCenterX, lCenterY),
+                                CvInvoke.PutText(warpedFrame, $"Rectangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                             }
 
@@ -495,20 +500,20 @@ namespace UR2_robot_arm2
 
                         if (lCurApprox.Size == 6)
                         {
-                            CvInvoke.PutText(warpedFrame, "Hexagon", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Hexagon { lCenterX}, { lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
 
                         if (lCurApprox.Size > 6)
                         {
-                            CvInvoke.PutText(warpedFrame, "Circle", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Circle { lCenterX}, { lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
                         if (lCurApprox.Size == 5)
                         {
-                            CvInvoke.PutText(warpedFrame, "Pentagon", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Pentagon {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
@@ -522,6 +527,18 @@ namespace UR2_robot_arm2
                     DecoratedPictureBox.Image = warpedFrame.ToBitmap();
 
                     mContoursCount = lContours.Size;
+
+                    // Process contours excluding the largest one
+                    for (int i = 0; i < lContours.Size; i++)
+                    {
+                        if (i == chosen) // Skip the largest contour
+                            continue;
+
+                        VectorOfPoint contour = lContours[i];
+                        // ... (rest of your code for processing each contour)
+                    }
+
+                    mContoursCount = lContours.Size - 1; // Exclude the largest contour
 
                 }
 
