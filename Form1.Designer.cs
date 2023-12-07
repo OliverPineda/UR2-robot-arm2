@@ -42,6 +42,11 @@
             this.ArduinoDataTextBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.textBoxInput = new System.Windows.Forms.TextBox();
+            this.textBoxOutput = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.SendSerial = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.GrayPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DecoratedPictureBox)).BeginInit();
@@ -123,7 +128,7 @@
             // 
             this.CoordsTextBox.Location = new System.Drawing.Point(1363, 524);
             this.CoordsTextBox.Name = "CoordsTextBox";
-            this.CoordsTextBox.Size = new System.Drawing.Size(125, 27);
+            this.CoordsTextBox.Size = new System.Drawing.Size(369, 27);
             this.CoordsTextBox.TabIndex = 13;
             // 
             // label1
@@ -148,7 +153,7 @@
             // 
             this.ArduinoDataTextBox.Location = new System.Drawing.Point(1363, 557);
             this.ArduinoDataTextBox.Name = "ArduinoDataTextBox";
-            this.ArduinoDataTextBox.Size = new System.Drawing.Size(123, 27);
+            this.ArduinoDataTextBox.Size = new System.Drawing.Size(369, 27);
             this.ArduinoDataTextBox.TabIndex = 16;
             // 
             // label4
@@ -169,11 +174,57 @@
             this.label5.TabIndex = 19;
             this.label5.Text = "GrayMax";
             // 
+            // textBoxInput
+            // 
+            this.textBoxInput.Location = new System.Drawing.Point(79, 562);
+            this.textBoxInput.Name = "textBoxInput";
+            this.textBoxInput.Size = new System.Drawing.Size(265, 27);
+            this.textBoxInput.TabIndex = 21;
+            // 
+            // textBoxOutput
+            // 
+            this.textBoxOutput.Location = new System.Drawing.Point(79, 606);
+            this.textBoxOutput.Name = "textBoxOutput";
+            this.textBoxOutput.Size = new System.Drawing.Size(782, 27);
+            this.textBoxOutput.TabIndex = 22;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(878, 613);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(53, 20);
+            this.label6.TabIndex = 25;
+            this.label6.Text = "output";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(350, 565);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(43, 20);
+            this.label3.TabIndex = 26;
+            this.label3.Text = "input";
+            // 
+            // SendSerial
+            // 
+            this.SendSerial.Location = new System.Drawing.Point(432, 555);
+            this.SendSerial.Name = "SendSerial";
+            this.SendSerial.Size = new System.Drawing.Size(157, 29);
+            this.SendSerial.TabIndex = 27;
+            this.SendSerial.Text = "SendContours";
+            this.SendSerial.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1777, 708);
+            this.Controls.Add(this.SendSerial);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.textBoxOutput);
+            this.Controls.Add(this.textBoxInput);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.ArduinoDataTextBox);
@@ -216,5 +267,10 @@
         private TextBox ArduinoDataTextBox;
         private Label label4;
         private Label label5;
+        private TextBox textBoxInput;
+        private TextBox textBoxOutput;
+        private Label label6;
+        private Label label3;
+        private Button SendSerial;
     }
 }

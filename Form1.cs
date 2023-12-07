@@ -5,6 +5,7 @@ using Emgu.CV.Util;
 using Has2BeSameNameSpace;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO.Pipes;
 using System.IO.Ports;
 using System.Linq.Expressions;
 using System.Text;
@@ -14,6 +15,16 @@ namespace UR2_robot_arm2
 {
     public partial class Form1 : Form
     {
+        //public struct SHAPE
+        //{
+        //    public int mX;
+        //    public int mY;
+        //    public int mType;
+
+        //}
+
+        // Make sure to initialize mShapes somewhere in your code
+        //List<SHAPE> mShapes = new List<SHAPE>();
 
         //main capture object from Emgu.Cv MAIN CODE THAT COMMUNICATES WITH CAMERA. TELLS TO COMMUNICATE WITH CAMERA
         VideoCapture mCapture;
@@ -42,6 +53,7 @@ namespace UR2_robot_arm2
         bool mFoundIsValid = false;
         bool mReplyIsReady = false;
 
+        //SerialPort inputSerial;
 
         public Form1()
         {
@@ -70,28 +82,48 @@ namespace UR2_robot_arm2
 
             {
                 //initialize with ifany plugged camera
-                mCapture = new VideoCapture(0, VideoCapture.API.DShow); //0 means default , 1 means webcam
+                mCapture = new VideoCapture(0, VideoCapture.API.DShow); //0 means webcam , 1 means default??
 
                 if (mCapture.Height == 0) //must match what mCapture is on above line
                     throw new Exception("No Camera Found");
 
                 //initalize new thread
-                // mCaptureThread = new Thread(() => DisplayWebcam(mCancellationToken.Token));
+                mCaptureThread = new Thread(() => DisplayWebcam(mCancellationToken.Token));
 
                 // Start the thread
-                // mCaptureThread.Start();
+                mCaptureThread.Start();
 
                 // Indicate new state
-                //mIsCapturing = true;
+                mIsCapturing = true;
 
                 // Optional: Update UI or perform any other initialization
 
                 // The picture boxes will be updated in the DisplayWebcam method
 
-                //initialize serial port
-                mArduinoSerial.PortName = "COM6";
-                mArduinoSerial.BaudRate = 9600;
-                mArduinoSerial.Open();
+                //Input Arduino
+                //inputSerial = new SerialPort();
+                //inputSerial.PortName = "COM6"; // Change this to your Arduino's COM port
+                // inputSerial.BaudRate = 9600;
+                //inputSerial.DataReceived += SerialPort_DataReceived;
+
+                try
+                {
+
+                    // Initialize serial port
+                    mArduinoSerial.PortName = "COM6";
+                    mArduinoSerial.BaudRate = 9600;
+                    mArduinoSerial.DataReceived += SerialPort_DataReceived;
+
+                    // Open the serial port
+                    mArduinoSerial.Open();
+
+                    // ...
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error initializing serial port: {ex.Message}");
+                    Close();
+                }
 
             }
             catch (Exception ex)
@@ -104,76 +136,105 @@ namespace UR2_robot_arm2
 
         }
 
-        private void SendSerialComm()
+        private void SendDataToArduino(string data)
         {
-            if (!mFoundIsValid)
-                return;
 
             try
             {
-                //type     0=triangle   1=square
-                //send number of contours and iterate till zero
-                //<20,100.0> <400,242.1> <134,232.1>   split on dot. after each dot is the type
-                byte[] buffer = new byte[3] //number
+                if (mArduinoSerial.IsOpen)
                 {
-                    Encoding.ASCII.GetBytes("<")[0],
-                    Convert.ToByte(mContoursCount),
-                    Encoding.ASCII.GetBytes(">")[0]
-                };
-                //if (mProcessInProgress == false) do bottom in bradckets
-
-                mArduinoSerial.Write(buffer, 0, buffer.Length);
-                mReplyIsReady = true;
-
-                mSerialCancellationToken = new();
-                mSerialMonitoringThread = new(() => MonitorSerialData(mSerialCancellationToken.Token));
-                mSerialMonitoringThread.Start();
-
+                    mArduinoSerial.WriteLine(data);
+                }
+                else
+                {
+                    // Handle the case where the serial port is not open
+                    MessageBox.Show("Serial port is not open.");
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ArduinoDataTextBox.Text = "Something is wrong!";
+                // Handle any exceptions that may occur during serial communication
+                MessageBox.Show($"Error sending data to Arduino: {ex.Message}");
             }
         }
 
-        private void MonitorSerialData(CancellationToken token)
+
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            while (!token.IsCancellationRequested && mReplyIsReady)
+            try
             {
-                //block unitl \n character is received, extract command data
-                string msg = mArduinoSerial.ReadLine();
+                string receivedData = mArduinoSerial.ReadLine();
+                DisplayReceivedData(receivedData);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error receiving data from Arduino: {ex.Message}");
+            }
+        }
 
-                mReplyIsReady = false;
+        private void DisplayReceivedData(string data)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string>(DisplayReceivedData), data);
+            }
+            else
+            {
+                UpdateTextBox(textBoxOutput, data);
+            }
+        }
 
-                //confirm the string has both < and > characters
-                if (msg.IndexOf("<") == - 1 || msg.IndexOf(">") == -1)
-                {
-                    continue;
-                }
+        private void UpdateArduinoDataTextBox(string data)
+        {
+            if (ArduinoDataTextBox.InvokeRequired)
+            {
+                // If the current thread is not the UI thread, invoke the update
+                ArduinoDataTextBox.Invoke(new Action(() => UpdateArduinoDataTextBox(data)));
+            }
+            else
+            {
+                // Update the UI control
+                ArduinoDataTextBox.Text = data;
+            }
+        }
 
-                //remove everhything before (and including) the < character
-                msg = msg.Substring(msg.IndexOf("<") + 1);
+        // Method to safely update any other TextBox control
+        private void UpdateTextBox(TextBox textBox, string data)
+        {
+            if (textBox.InvokeRequired)
+            {
+                textBox.Invoke(new Action(() => UpdateTextBox(textBox, data)));
+            }
+            else
+            {
+                textBox.Text = data;
+            }
+        }
 
-                //remove everything after (and including) the > character
-                msg = msg.Remove(msg.IndexOf(">"));
+        // Example method to update a Label control
+        private void UpdateLabel(Label label, string data)
+        {
+            if (label.InvokeRequired)
+            {
+                label.Invoke(new Action(() => UpdateLabel(label, data)));
+            }
+            else
+            {
+                label.Text = data;
+            }
+        }
 
-                //if the resulting string is empty, disregard and move on
-                if (msg.Length == 0)
-                {
-                    continue;
-                }
-
-                //Is this really a 'R'eply?
-                if (msg.Substring(0, 1) == "R")
-                {
-                    //comand is to display the point data, output to the test field
-                    Invoke(new Action(() =>
-                    {
-                        ArduinoDataTextBox.Text = $"Returned Data: {msg.Substring(1)}";
-
-                    }));
-                }
-
+        // Example method to update any other control (replace Control with the actual type)
+        private void UpdateControl(Control control, string data)
+        {
+            if (control.InvokeRequired)
+            {
+                control.Invoke(new Action(() => UpdateControl(control, data)));
+            }
+            else
+            {
+                control.Text = data;
             }
         }
 
@@ -182,42 +243,56 @@ namespace UR2_robot_arm2
             while (!token.IsCancellationRequested) //while no requested cancellation
             {
                 // input
-                Mat sourceFrame = mCapture.QueryFrame(); // grab a new frame
+                mOriginalImage = mCapture.QueryFrame(); // set mOriginalImage to queryframe
+
+                Mat lOriginalImageDisplay = new Mat(); // grab a new frame
+
 
                 // resize to PictureBox aspect ratio
-                int newHeight = (sourceFrame.Size.Height * VideoPictureBox.Size.Width) / sourceFrame.Size.Width;
-
+                int newHeight = (mOriginalImage.Size.Height * VideoPictureBox.Size.Width) / mOriginalImage.Size.Width;
                 Size newSize = new Size(VideoPictureBox.Size.Width, newHeight);
+                CvInvoke.Resize(mOriginalImage, lOriginalImageDisplay, newSize);
 
-                CvInvoke.Resize(sourceFrame, sourceFrame, newSize);
-
-                // display the image in the source PictureBox
-                VideoPictureBox.Image = sourceFrame.ToBitmap();
 
                 // copy the source image so we can display a copy with artwork without editing the original:
-                Mat sourceFrameWithArt = sourceFrame.Clone();
+                Mat sourceFrameWithArt = lOriginalImageDisplay.Clone();
 
                 // create an image version of the source frame, will be used when warping the image
-                Image<Bgr, byte> sourceFrameWarped = sourceFrame.ToImage<Bgr, byte>();
+                Image<Bgr, byte> sourceFrameWarped = lOriginalImageDisplay.ToImage<Bgr, byte>();
 
                 // Isolating the ROI: convert to a gray, apply binary threshold:
-                Image<Gray, byte> grayImg = sourceFrame.ToImage<Gray, byte>().ThresholdBinary(new Gray(125), new
-                Gray(255));
+                Image<Gray, byte> grayImg = lOriginalImageDisplay.ToImage<Gray, byte>().ThresholdBinary(new Gray(mGrayMin), new
+                Gray(mGrayMax));
 
-                using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+                // display the image in the source PictureBox
+                VideoPictureBox.Image = lOriginalImageDisplay.ToBitmap();
+
+                // convert to binary gray image
+                var lGrayImage = lOriginalImageDisplay.ToImage<Gray, byte>()
+                                    .ThresholdBinary(new Gray(mGrayMin), new Gray(mGrayMax)).Mat;
+
+                //flickering ???
+                //GrayPictureBox.Image = lGrayImage.ToBitmap();
+
+                using (VectorOfVectorOfPoint lContours = new VectorOfVectorOfPoint())
                 {
-                    // Build list of contours
-                    CvInvoke.FindContours(grayImg, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+                    mFoundIsValid = false;
 
-                    // Selecting largest contour
-                    if (contours.Size > 0)
+
+                    // Build list of lContours on the gray image
+                    CvInvoke.FindContours(grayImg, lContours, null, RetrType.List,
+                                            ChainApproxMethod.ChainApproxSimple);
+
+                    // Selecting largest contour NEW-> DO process only if found count is logical
+                    if (lContours.Size > 0 && lContours.Size < 20)
                     {
+                        mFoundIsValid = true;
+                        //Find largest contour
                         double maxArea = 0;
                         int chosen = 0;
-
-                        for (int i = 0; i < contours.Size; i++)
+                        for (int i = 0; i < lContours.Size; i++)
                         {
-                            VectorOfPoint contour = contours[i];
+                            VectorOfPoint contour = lContours[i];
                             double area = CvInvoke.ContourArea(contour);
                             if (area > maxArea)
                             {
@@ -226,31 +301,161 @@ namespace UR2_robot_arm2
                             }
                         }
 
+
                         // Getting minimal rectangle which contains the contour
-                        Rectangle boundingBox = CvInvoke.BoundingRectangle(contours[chosen]);
+                        Rectangle boundingBox = CvInvoke.BoundingRectangle(lContours[chosen]);
 
                         // Draw on the display frame
-                        MarkDetectedObject(sourceFrameWithArt, contours[chosen], boundingBox, maxArea);
+                        MarkDetectedObject(sourceFrameWithArt, lContours[chosen], boundingBox, maxArea);
 
                         // Create a slightly larger bounding rectangle, we'll set it as the ROI for later warping
                         sourceFrameWarped.ROI = new Rectangle((int)Math.Min(0, boundingBox.X - 30),
-
                         (int)Math.Min(0, boundingBox.Y - 30),
+                        (int)Math.Max(sourceFrameWarped.Width - 1, boundingBox.X +
+                        boundingBox.Width + 30),
+                        (int)Math.Max(sourceFrameWarped.Height - 1, boundingBox.Y +
+                        boundingBox.Height + 30));
 
-                        (int)Math.Max(sourceFrameWarped.Width - 1, boundingBox.X + boundingBox.Width + 30),
-
-                        (int)Math.Max(sourceFrameWarped.Height - 1, boundingBox.Y + boundingBox.Height + 30));
                         // Display the version of the source image with the added artwork, simulating ROI focus:
+                        //lDecoratedImage.ToBitmap is for AREA AND POS., .sourseFrameWithArt.TopBitmap is for grayscale adjusting.
+                        //GrayPictureBox.Image = lDecoratedImage.ToBitmap();    // was....   GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
 
                         GrayPictureBox.Image = sourceFrameWithArt.ToBitmap();
-                        // Warp the image, output it
 
-                        DecoratedPictureBox.Image = WarpImage(sourceFrameWarped, contours[chosen]).ToBitmap();
+                        Image<Bgr, Byte> warpedFrame = WarpImage(sourceFrameWarped, lContours[chosen]);
+                        Image<Gray, Byte> grayWarpedFrame = warpedFrame.Convert<Gray, Byte>();
+
+
+                        // Warp the image, output it
+                        //DecoratedPictureBox.Image = WarpImage(sourceFrameWarped, lContours[chosen]).ToBitmap();
+
+                        List<Bgr> lColors = new List<Bgr>{ new Bgr(Color.Red),
+                                                        new Bgr(Color.Green),
+                                                        new Bgr(Color.Blue),
+                                                        new Bgr(Color.Yellow),
+                                                        new Bgr(Color.Orange),
+                                                        new Bgr(Color.Pink),
+                                                        new Bgr(Color.Purple)};
+
+                        for (int i = 0; i < lContours.Size; i++)
+                        {
+
+                            double lCurPerimeter = CvInvoke.ArcLength(lContours[i], true);
+                            VectorOfPoint lCurApprox = new VectorOfPoint();
+                            CvInvoke.ApproxPolyDP(lContours[i], lCurApprox, 0.04 * lCurPerimeter, true);
+
+                            CvInvoke.DrawContours(grayWarpedFrame, lContours, i, new MCvScalar(0, 0, 255), 2);
+
+                            //lMoments  center of the shape
+
+                            var lMoments = CvInvoke.Moments(lContours[i]);
+                            int lCenterX = (int)(lMoments.M10 / lMoments.M00);
+                            int lCenterY = (int)(lMoments.M01 / lMoments.M00);
+
+                            var lMomentsAll = CvInvoke.Moments(lContours[i]);
+                            int lCenterAllX = (int)(lMomentsAll.M10 / lMomentsAll.M00);
+                            int lCenterAllY = (int)(lMomentsAll.M01 / lMomentsAll.M00);
+
+                            string positionMin = lCenterX.ToString() + "," + lCenterY.ToString();
+                            string positionAll = lCenterAllX.ToString() + "," + lCenterAllY.ToString();
+
+
+                            //SHAPE lCurrentShape;
+
+                            if (lCurApprox.Size == 3)
+                            {
+                                //lCurrentShape = new SHAPE();
+
+                                CvInvoke.PutText(warpedFrame, $"Triangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                                //CvInvoke.PutText(sourceFrameWarped, positionMin, new Point(lCenterX, lCenterY),
+                                //    Emgu.CV.CvEnum.FontFace.HersheySimplex, 1.0, new MCvScalar(255, 0, 255), 2);
+
+                                // PositionX = lCenterX;
+                                // PositionY = lCenterY;
+
+                                //lCurrentShape.mType = 0;
+                                //lCurrentShape.mX = lCenterX;
+                                //lCurrentShape.mY = lCenterY;
+                            }
+
+                            if (lCurApprox.Size == 4)
+                            {
+                                Rectangle rect = CvInvoke.BoundingRectangle(lContours[i]);
+
+                                double ar = (double)rect.Width / rect.Height;
+
+                                if (ar >= 0.95 && ar <= 1.05)
+                                {
+                                    CvInvoke.PutText(warpedFrame, $"Square {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+
+                                }
+                                else
+                                {
+                                    CvInvoke.PutText(warpedFrame, $"Rectangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+
+                                }
+
+
+                            }
+
+                            if (lCurApprox.Size == 6)
+                            {
+                                CvInvoke.PutText(warpedFrame, $"Hexagon {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                            }
+
+
+                            if (lCurApprox.Size > 6)
+                            {
+                                CvInvoke.PutText(warpedFrame, $"Circle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                            }
+
+                            if (lCurApprox.Size == 5)
+                            {
+                                CvInvoke.PutText(warpedFrame, $"Pentagon {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
+                                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                            }
+
+                            //mShapes.Add(lCurrentShape);
+                        }
+
+
+                        //CoordsTextBox.Text = $"{lContours.Size} lContours detected.";
+
+                        //DecoratedPictureBox.Image = WarpImage(sourceFrameWarped, lContours[chosen]).ToBitmap();
+
+                        // display decorated image
+                        DecoratedPictureBox.Image = warpedFrame.ToBitmap();
+
+                        mContoursCount = lContours.Size;
+
+
+
+                        // Process contours excluding the largest one
+                        for (int i = 0; i < lContours.Size; i++)
+                        {
+                            if (i == chosen) // Skip the largest contour
+                                continue;
+
+                            VectorOfPoint contour = lContours[i];
+                            // ... (rest of your code for processing each contour)
+                        }
+
+                        mContoursCount = lContours.Size - 1; // Exclude the largest contour
 
                     }
+
+
                 }
+
             }
+
         }
+
         private static Image<Bgr, Byte> WarpImage(Image<Bgr, byte> frame, VectorOfPoint contour)
         {
             // set the output size:
@@ -322,8 +527,6 @@ namespace UR2_robot_arm2
 
                 FontFace.HersheyPlain, 0.8, new Bgr(Color.Red).MCvScalar);
             }
-
-
         }
 
         private void BrowseBtn_Click(object sender, EventArgs e)
@@ -339,8 +542,8 @@ namespace UR2_robot_arm2
                 mOriginalImage = CvInvoke.Imread(lFile.FileName,
                                         Emgu.CV.CvEnum.ImreadModes.AnyColor);
 
-                ProcessImage();
-                SendSerialComm();
+                //ProcessImage();
+                //SendDataToArduino();
             }
         }
 
@@ -349,7 +552,7 @@ namespace UR2_robot_arm2
             mGrayMin = GrayMin.Value; //int member GrayMin = name of trackbar
             GrayMinLabel.Text = mGrayMin.ToString();
             ProcessImage();
-
+            SendDataToArduino(mContoursCount.ToString());
         }
 
         private void GrayMax_Scroll(object sender, EventArgs e)
@@ -357,11 +560,12 @@ namespace UR2_robot_arm2
             mGrayMax = GrayMax.Value;
             GrayMaxLabel.Text = mGrayMax.ToString();
             ProcessImage();
-       
         }
 
         void ProcessImage()
         {
+
+
             Mat lOriginalImageDisplay = mOriginalImage;
 
             // resize to PictureBox aspect ratio
@@ -394,8 +598,6 @@ namespace UR2_robot_arm2
             using (VectorOfVectorOfPoint lContours = new VectorOfVectorOfPoint())
             {
                 mFoundIsValid = false;
-                ArduinoDataTextBox.Text = "";
-
 
                 // Build list of lContours on the gray image
                 CvInvoke.FindContours(lGrayImage, lContours, null, RetrType.List,
@@ -473,10 +675,31 @@ namespace UR2_robot_arm2
                         int lCenterX = (int)(lMoments.M10 / lMoments.M00);
                         int lCenterY = (int)(lMoments.M01 / lMoments.M00);
 
+                        var lMomentsAll = CvInvoke.Moments(lContours[i]);
+                        int lCenterAllX = (int)(lMomentsAll.M10 / lMomentsAll.M00);
+                        int lCenterAllY = (int)(lMomentsAll.M01 / lMomentsAll.M00);
+
+                        string positionMin = lCenterX.ToString() + "," + lCenterY.ToString();
+                        string positionAll = lCenterAllX.ToString() + "," + lCenterAllY.ToString();
+
+
+                        //SHAPE lCurrentShape;
+
                         if (lCurApprox.Size == 3)
                         {
+                            //lCurrentShape = new SHAPE();
+
                             CvInvoke.PutText(warpedFrame, $"Triangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+                            //CvInvoke.PutText(sourceFrameWarped, positionMin, new Point(lCenterX, lCenterY),
+                            //    Emgu.CV.CvEnum.FontFace.HersheySimplex, 1.0, new MCvScalar(255, 0, 255), 2);
+
+                            // PositionX = lCenterX;
+                            // PositionY = lCenterY;
+
+                            //lCurrentShape.mType = 0;
+                            //lCurrentShape.mX = lCenterX;
+                            //lCurrentShape.mY = lCenterY;
                         }
 
                         if (lCurApprox.Size == 4)
@@ -487,27 +710,30 @@ namespace UR2_robot_arm2
 
                             if (ar >= 0.95 && ar <= 1.05)
                             {
-                                CvInvoke.PutText(warpedFrame, $"Square {lCenterX}, {lCenterY}",  new Point(lCenterX, lCenterY),
+                                CvInvoke.PutText(warpedFrame, $"Square {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+
                             }
                             else
                             {
                                 CvInvoke.PutText(warpedFrame, $"Rectangle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
+
                             }
+
 
                         }
 
                         if (lCurApprox.Size == 6)
                         {
-                            CvInvoke.PutText(warpedFrame, $"Hexagon { lCenterX}, { lCenterY}", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Hexagon {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
 
                         if (lCurApprox.Size > 6)
                         {
-                            CvInvoke.PutText(warpedFrame, $"Circle { lCenterX}, { lCenterY}", new Point(lCenterX, lCenterY),
+                            CvInvoke.PutText(warpedFrame, $"Circle {lCenterX}, {lCenterY}", new Point(lCenterX, lCenterY),
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
@@ -517,8 +743,10 @@ namespace UR2_robot_arm2
                                 Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.5, new MCvScalar(0, 0, 255), 2);
                         }
 
-
+                        //mShapes.Add(lCurrentShape);
                     }
+
+
 
                     CoordsTextBox.Text = $"{lContours.Size} lContours detected.";
                     //DecoratedPictureBox.Image = WarpImage(sourceFrameWarped, lContours[chosen]).ToBitmap();
@@ -527,6 +755,7 @@ namespace UR2_robot_arm2
                     DecoratedPictureBox.Image = warpedFrame.ToBitmap();
 
                     mContoursCount = lContours.Size;
+
 
                     // Process contours excluding the largest one
                     for (int i = 0; i < lContours.Size; i++)
@@ -539,16 +768,17 @@ namespace UR2_robot_arm2
                     }
 
                     mContoursCount = lContours.Size - 1; // Exclude the largest contour
-
-                }
-
-                else
-                {
-                    ArduinoDataTextBox.Text = "Invalid";
+                    SendDataToArduino(mContoursCount.ToString());
                 }
 
 
             }
         }
+
+        private void SendSerial_Click(object sender, EventArgs e)
+        {
+            SendDataToArduino(mContoursCount.ToString());
+        }
+
     }
 }
