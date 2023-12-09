@@ -47,6 +47,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.SendSerial = new System.Windows.Forms.Button();
+            this.shapesTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.GrayPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DecoratedPictureBox)).BeginInit();
@@ -214,12 +215,23 @@
             this.SendSerial.TabIndex = 27;
             this.SendSerial.Text = "SendContours";
             this.SendSerial.UseVisualStyleBackColor = true;
+            this.SendSerial.Click += new System.EventHandler(this.SendSerial_Click_1);
+            // 
+            // shapesTextBox
+            // 
+            this.shapesTextBox.Location = new System.Drawing.Point(937, 508);
+            this.shapesTextBox.Multiline = true;
+            this.shapesTextBox.Name = "shapesTextBox";
+            this.shapesTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.shapesTextBox.Size = new System.Drawing.Size(343, 188);
+            this.shapesTextBox.TabIndex = 28;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1777, 708);
+            this.Controls.Add(this.shapesTextBox);
             this.Controls.Add(this.SendSerial);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label6);
@@ -272,5 +284,6 @@
         private Label label6;
         private Label label3;
         private Button SendSerial;
+        private TextBox shapesTextBox;
     }
 }
