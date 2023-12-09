@@ -18,7 +18,7 @@ namespace UR2_robot_arm2
     {
         List<Shape> mShapes = new List<Shape>();
 
-    
+
         //main capture object from Emgu.Cv MAIN CODE THAT COMMUNICATES WITH CAMERA. TELLS TO COMMUNICATE WITH CAMERA
         VideoCapture mCapture;
 
@@ -147,7 +147,27 @@ namespace UR2_robot_arm2
             }
         }
 
+        private void SendCoordsToArduino(string Coords)
+        {
 
+            try
+            {
+                if (mArduinoSerial.IsOpen)
+                {
+                    mArduinoSerial.WriteLine(Coords);
+                }
+                else
+                {
+                    // Handle the case where the serial port is not open
+                    MessageBox.Show("Serial port is not open.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that may occur during serial communication
+                MessageBox.Show($"Error sending data to Arduino: {ex.Message}");
+            }
+        }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -155,6 +175,19 @@ namespace UR2_robot_arm2
             {
                 string receivedData = mArduinoSerial.ReadLine();
                 DisplayReceivedData(receivedData);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error receiving data from Arduino: {ex.Message}");
+            }
+        }
+
+        private void SerialPort_CoordsReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                string receivedCoords = mArduinoSerial.ReadLine();
+                DisplayReceivedData(receivedCoords);
             }
             catch (Exception ex)
             {
@@ -170,7 +203,19 @@ namespace UR2_robot_arm2
             }
             else
             {
-                UpdateTextBox(textBoxOutput, data);
+                UpdateArduinoDataTextBox(data);
+            }
+        }
+
+        private void DisplayReceivedCoords(string coords)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<string>(DisplayReceivedCoords), coords);
+            }
+            else
+            {
+                UpdateArduinoDataTextBox(coords);
             }
         }
 
@@ -187,43 +232,44 @@ namespace UR2_robot_arm2
                 ArduinoDataTextBox.Text = data;
             }
         }
-
-        // Method to safely update any other TextBox control
-        private void UpdateTextBox(TextBox textBox, string data)
+        private void UpdateCTextBox(string Coords)
         {
-            if (textBox.InvokeRequired)
+            if (CtextBox.InvokeRequired)
             {
-                textBox.Invoke(new Action(() => UpdateTextBox(textBox, data)));
+                // If the current thread is not the UI thread, invoke the update
+                CtextBox.Invoke(new Action(() => UpdateCTextBox(Coords)));
             }
             else
             {
-                textBox.Text = data;
+                // Update the UI control
+                CtextBox.Text = Coords;
             }
         }
 
-        // Example method to update a Label control
-        private void UpdateLabel(Label label, string data)
+        public void SendShapeDataToArduino()
         {
-            if (label.InvokeRequired)
+            try
             {
-                label.Invoke(new Action(() => UpdateLabel(label, data)));
-            }
-            else
-            {
-                label.Text = data;
-            }
-        }
 
-        // Example method to update any other control (replace Control with the actual type)
-        private void UpdateControl(Control control, string data)
-        {
-            if (control.InvokeRequired)
-            {
-                control.Invoke(new Action(() => UpdateControl(control, data)));
+                // Iterate through each shape in the list
+                foreach (var shape in mShapes)
+                {
+                    // Access properties of the shape
+                    int centerX = shape.CenterX;
+                    int centerY = shape.CenterY;
+
+                    // Convert the integer values to strings for sending over Serial
+                    string centerXString = centerX.ToString();
+                    string centerYString = centerY.ToString();
+
+                    // Send the data to Arduino over Serial
+                    mArduinoSerial.WriteLine($"X:{centerXString},Y:{centerYString}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                control.Text = data;
+                // Handle exceptions as needed
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
@@ -286,7 +332,7 @@ namespace UR2_robot_arm2
                 //GrayPictureBox.Image = lGrayImage.ToBitmap();
 
 
-               
+
 
             }
 
@@ -607,5 +653,4 @@ namespace UR2_robot_arm2
         }
     }
 }
-
 

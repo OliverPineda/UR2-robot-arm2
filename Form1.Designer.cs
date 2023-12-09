@@ -48,6 +48,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.SendSerial = new System.Windows.Forms.Button();
             this.shapesTextBox = new System.Windows.Forms.TextBox();
+            this.CtextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.GrayPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DecoratedPictureBox)).BeginInit();
@@ -226,11 +227,21 @@
             this.shapesTextBox.Size = new System.Drawing.Size(343, 188);
             this.shapesTextBox.TabIndex = 28;
             // 
+            // CtextBox
+            // 
+            this.CtextBox.Location = new System.Drawing.Point(1386, 590);
+            this.CtextBox.Multiline = true;
+            this.CtextBox.Name = "CtextBox";
+            this.CtextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.CtextBox.Size = new System.Drawing.Size(346, 106);
+            this.CtextBox.TabIndex = 29;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1777, 708);
+            this.Controls.Add(this.CtextBox);
             this.Controls.Add(this.shapesTextBox);
             this.Controls.Add(this.SendSerial);
             this.Controls.Add(this.label3);
@@ -285,5 +296,7 @@
         private Label label3;
         private Button SendSerial;
         private TextBox shapesTextBox;
+        private TextBox CtextBox;
+
     }
 }
