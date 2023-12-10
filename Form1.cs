@@ -147,27 +147,7 @@ namespace UR2_robot_arm2
             }
         }
 
-        private void SendCoordsToArduino(string Coords)
-        {
 
-            try
-            {
-                if (mArduinoSerial.IsOpen)
-                {
-                    mArduinoSerial.WriteLine(Coords);
-                }
-                else
-                {
-                    // Handle the case where the serial port is not open
-                    MessageBox.Show("Serial port is not open.");
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions that may occur during serial communication
-                MessageBox.Show($"Error sending data to Arduino: {ex.Message}");
-            }
-        }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -175,19 +155,6 @@ namespace UR2_robot_arm2
             {
                 string receivedData = mArduinoSerial.ReadLine();
                 DisplayReceivedData(receivedData);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error receiving data from Arduino: {ex.Message}");
-            }
-        }
-
-        private void SerialPort_CoordsReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                string receivedCoords = mArduinoSerial.ReadLine();
-                DisplayReceivedData(receivedCoords);
             }
             catch (Exception ex)
             {
@@ -203,73 +170,21 @@ namespace UR2_robot_arm2
             }
             else
             {
-                UpdateArduinoDataTextBox(data);
+                textBoxOutput.AppendText(data + Environment.NewLine); // Use AppendText to add new data and a new line
             }
         }
 
-        private void DisplayReceivedCoords(string coords)
+
+        // Method to safely update any other TextBox control
+        private void UpdateTextBox(TextBox textBox, string data)
         {
-            if (InvokeRequired)
+            if (textBox.InvokeRequired)
             {
-                Invoke(new Action<string>(DisplayReceivedCoords), coords);
+                textBox.Invoke(new Action(() => UpdateTextBox(textBox, data)));
             }
             else
             {
-                UpdateArduinoDataTextBox(coords);
-            }
-        }
-
-        private void UpdateArduinoDataTextBox(string data)
-        {
-            if (ArduinoDataTextBox.InvokeRequired)
-            {
-                // If the current thread is not the UI thread, invoke the update
-                ArduinoDataTextBox.Invoke(new Action(() => UpdateArduinoDataTextBox(data)));
-            }
-            else
-            {
-                // Update the UI control
-                ArduinoDataTextBox.Text = data;
-            }
-        }
-        private void UpdateCTextBox(string Coords)
-        {
-            if (CtextBox.InvokeRequired)
-            {
-                // If the current thread is not the UI thread, invoke the update
-                CtextBox.Invoke(new Action(() => UpdateCTextBox(Coords)));
-            }
-            else
-            {
-                // Update the UI control
-                CtextBox.Text = Coords;
-            }
-        }
-
-        public void SendShapeDataToArduino()
-        {
-            try
-            {
-
-                // Iterate through each shape in the list
-                foreach (var shape in mShapes)
-                {
-                    // Access properties of the shape
-                    int centerX = shape.CenterX;
-                    int centerY = shape.CenterY;
-
-                    // Convert the integer values to strings for sending over Serial
-                    string centerXString = centerX.ToString();
-                    string centerYString = centerY.ToString();
-
-                    // Send the data to Arduino over Serial
-                    mArduinoSerial.WriteLine($"X:{centerXString},Y:{centerYString}");
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions as needed
-                Console.WriteLine($"Error: {ex.Message}");
+                textBox.Text = data;
             }
         }
 
@@ -448,6 +363,8 @@ namespace UR2_robot_arm2
         void ProcessImage()
         {
 
+            mShapes.Clear();
+
             // find lContours:
             using (VectorOfVectorOfPoint lContours = new VectorOfVectorOfPoint())
             {
@@ -462,6 +379,7 @@ namespace UR2_robot_arm2
                 if (lContours.Size > 0 && lContours.Size < 20)
                 {
                     mFoundIsValid = true;
+
                     //Find largest contour
                     double maxArea = 0;
                     int chosen = 0;
@@ -472,6 +390,7 @@ namespace UR2_robot_arm2
                     {
                         VectorOfPoint contour = lContours[i];
                         double area = CvInvoke.ContourArea(contour);
+
                         if (area > maxArea)
                         {
                             maxArea = area;
@@ -517,6 +436,11 @@ namespace UR2_robot_arm2
 
                     for (int i = 0; i < lContours.Size; i++)
                     {
+                        //just added
+                        if (i == chosen)
+                            continue;
+
+                        VectorOfPoint contour = lContours[i];
 
                         double lCurPerimeter = CvInvoke.ArcLength(lContours[i], true);
                         VectorOfPoint lCurApprox = new VectorOfPoint();
@@ -629,28 +553,22 @@ namespace UR2_robot_arm2
 
 
 
-                    // Process contours excluding the largest one
-                    for (int i = 0; i < lContours.Size; i++)
-                    {
-                        if (i == chosen) // Skip the largest contour
-                            continue;
-
-                        VectorOfPoint contour = lContours[i];
-                        // ... (rest of your code for processing each contour)
-                    }
-
-                    mContoursCount = lContours.Size - 1; // Exclude the largest contour
-
-                }
-
-
+                }  
             }
         }
 
         private void SendSerial_Click_1(object sender, EventArgs e)
         {
             SendDataToArduino(mContoursCount.ToString());
+
+            // Send X and Y coordinates of each shape
+            foreach (var shape in mShapes)
+            {
+                string shapeData = $"{shape.CenterX},{shape.CenterY}";
+                SendDataToArduino(shapeData);
+            }
+            // Clear the list of shapes after sending the data
+           // mShapes.Clear();
         }
     }
 }
-

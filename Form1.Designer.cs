@@ -39,7 +39,6 @@
             this.CoordsTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.ArduinoDataTextBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.textBoxInput = new System.Windows.Forms.TextBox();
@@ -48,7 +47,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.SendSerial = new System.Windows.Forms.Button();
             this.shapesTextBox = new System.Windows.Forms.TextBox();
-            this.CtextBox = new System.Windows.Forms.TextBox();
+            this.ArduinoDataTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VideoPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.GrayPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DecoratedPictureBox)).BeginInit();
@@ -151,13 +150,6 @@
             this.label2.TabIndex = 15;
             this.label2.Text = "Arduino:";
             // 
-            // ArduinoDataTextBox
-            // 
-            this.ArduinoDataTextBox.Location = new System.Drawing.Point(1363, 557);
-            this.ArduinoDataTextBox.Name = "ArduinoDataTextBox";
-            this.ArduinoDataTextBox.Size = new System.Drawing.Size(369, 27);
-            this.ArduinoDataTextBox.TabIndex = 16;
-            // 
             // label4
             // 
             this.label4.AutoSize = true;
@@ -178,16 +170,17 @@
             // 
             // textBoxInput
             // 
-            this.textBoxInput.Location = new System.Drawing.Point(79, 562);
+            this.textBoxInput.Location = new System.Drawing.Point(75, 534);
             this.textBoxInput.Name = "textBoxInput";
             this.textBoxInput.Size = new System.Drawing.Size(265, 27);
             this.textBoxInput.TabIndex = 21;
             // 
             // textBoxOutput
             // 
-            this.textBoxOutput.Location = new System.Drawing.Point(79, 606);
+            this.textBoxOutput.Location = new System.Drawing.Point(46, 567);
+            this.textBoxOutput.Multiline = true;
             this.textBoxOutput.Name = "textBoxOutput";
-            this.textBoxOutput.Size = new System.Drawing.Size(782, 27);
+            this.textBoxOutput.Size = new System.Drawing.Size(380, 129);
             this.textBoxOutput.TabIndex = 22;
             // 
             // label6
@@ -202,7 +195,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(350, 565);
+            this.label3.Location = new System.Drawing.Point(346, 541);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(43, 20);
             this.label3.TabIndex = 26;
@@ -227,21 +220,18 @@
             this.shapesTextBox.Size = new System.Drawing.Size(343, 188);
             this.shapesTextBox.TabIndex = 28;
             // 
-            // CtextBox
+            // ArduinoDataTextBox
             // 
-            this.CtextBox.Location = new System.Drawing.Point(1386, 590);
-            this.CtextBox.Multiline = true;
-            this.CtextBox.Name = "CtextBox";
-            this.CtextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.CtextBox.Size = new System.Drawing.Size(346, 106);
-            this.CtextBox.TabIndex = 29;
+            this.ArduinoDataTextBox.Location = new System.Drawing.Point(1363, 557);
+            this.ArduinoDataTextBox.Name = "ArduinoDataTextBox";
+            this.ArduinoDataTextBox.Size = new System.Drawing.Size(369, 27);
+            this.ArduinoDataTextBox.TabIndex = 16;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1777, 708);
-            this.Controls.Add(this.CtextBox);
             this.Controls.Add(this.shapesTextBox);
             this.Controls.Add(this.SendSerial);
             this.Controls.Add(this.label3);
@@ -287,7 +277,6 @@
         private TextBox CoordsTextBox;
         private Label label1;
         private Label label2;
-        private TextBox ArduinoDataTextBox;
         private Label label4;
         private Label label5;
         private TextBox textBoxInput;
@@ -296,7 +285,6 @@
         private Label label3;
         private Button SendSerial;
         private TextBox shapesTextBox;
-        private TextBox CtextBox;
-
+        private TextBox ArduinoDataTextBox;
     }
 }
